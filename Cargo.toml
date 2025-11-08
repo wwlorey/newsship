@@ -1,0 +1,52 @@
+[package]
+name = "newsship"
+version = "0.1.0"
+edition = "2021"
+authors = ["newsship contributors"]
+description = "AI-generated RSS feeds for newsboat"
+license = "MIT"
+repository = "https://github.com/wwlorey/newsship"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# HTTP client
+reqwest = { version = "0.11", features = ["json"] }
+
+# JSON parsing
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# XML generation
+quick-xml = { version = "0.31", features = ["serialize"] }
+
+# Date/time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Hashing for GUIDs
+sha2 = "0.10"
+hex = "0.4"
+
+# CLI argument parsing
+clap = { version = "4.4", features = ["derive"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging
+env_logger = "0.11"
+log = "0.4"
+
+# Async trait support
+async-trait = "0.1"
+
+# Directory utilities
+dirs = "5.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
