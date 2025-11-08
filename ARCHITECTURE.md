@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Newsship is a newsboat fork that adds AI-generated RSS feeds configured via natural language prompts. Users access newsboat normally, and AI feeds appear alongside traditional RSS feeds with zero additional configuration beyond setting API keys via environment variables.
+Newsship is a standalone tool that adds AI-generated RSS feeds to newsboat, configured via natural language prompts. Users continue using their existing newsboat installation, and AI feeds appear alongside traditional RSS feeds with zero additional configuration beyond setting API keys via environment variables.
 
 **Implementation Strategy:** Tier 1 External Script Integration
 - Uses newsboat's existing `exec:` URL mechanism
@@ -24,10 +24,10 @@ Newsship is a newsboat fork that adds AI-generated RSS feeds configured via natu
 ### 1.1 First-Time User Journey
 
 **Installation**
-1. User installs newsship (fork of newsboat)
+1. User installs newsship binary (standalone tool)
 2. User sets API key as environment variable:
    ```bash
-   export ANTHROPIC_API_KEY="sk-ant-..."
+   export OPENAI_API_KEY="sk-..."
    # or in ~/.bashrc, ~/.zshrc, etc.
    ```
 3. That's it - newsship works with zero config files needed
@@ -35,7 +35,7 @@ Newsship is a newsboat fork that adds AI-generated RSS feeds configured via natu
 **First AI Feed Setup**
 1. User edits `~/.newsboat/urls` and adds:
    ```
-   exec:~/.newsship/generate-feed tech-news
+   exec:~/.newsship/newsship tech-news
    ```
 
 2. User creates `~/.newsship/feeds.conf` (auto-created with defaults if missing):
@@ -47,9 +47,8 @@ Newsship is a newsboat fork that adds AI-generated RSS feeds configured via natu
 3. User launches `newsboat` normally
 
 **Zero-Config Default Behavior**
-- If `ANTHROPIC_API_KEY` is set, Claude is used automatically
-- If `OPENAI_API_KEY` is set (and Claude key isn't), OpenAI is used
-- Default prompts work out-of-box if feeds.conf is missing
+- If `OPENAI_API_KEY` is set, OpenAI is used automatically
+- If `ANTHROPIC_API_KEY` is set (and OpenAI key isn't), Claude is used as fallback
 - Sensible defaults for refresh intervals, article counts, etc.
 
 ### 1.2 Daily Usage Workflow
@@ -61,13 +60,13 @@ $ newsboat
 
 **Feed List View**
 ```
-  N     Tech News [AI]                                    (15)
+  N     Tech News                                         (15)
         Hacker News                                       (42)
-  N     Security Updates [AI]                             (8)
+  N     Security Updates                                  (8)
         Ars Technica                                      (23)
 ```
 
-*Note: `[AI]` indicator only appears if newsboat supports feed title customization in the feed list. We'll verify newsboat's display capabilities and use tags/titles if supported.*
+*Note: AI-generated feeds appear alongside traditional RSS feeds with no visual distinction.*
 
 **Reloading Feeds**
 - User presses `r` to reload all feeds
@@ -99,7 +98,8 @@ $ newsboat
 
 **Missing API Key**
 - Newsboat launches normally
-- AI feeds show error in feed list: `"Error: ANTHROPIC_API_KEY not set"`
+- AI feeds show error: `"Error: OPENAI_API_KEY not set"`
+- Error logged to `~/.newsship/error.log`
 - Traditional RSS feeds work normally
 - User can still browse cached AI articles from previous successful runs
 
@@ -134,8 +134,8 @@ Advanced (power users):
 ```
 feed security-news
   prompt "Latest CVEs and security vulnerabilities"
-  provider claude
-  model claude-sonnet-4-5
+  provider openai
+  model gpt-4o
   refresh 1800
   max-articles 15
   temperature 0.2
@@ -145,7 +145,7 @@ Inline overrides:
 ```
 feed quick-news
   prompt "Tech news from last 6 hours"
-  model haiku  # Faster, cheaper for quick updates
+  model gpt-4o-mini  # Faster, cheaper for quick updates
 ```
 
 ---
@@ -169,14 +169,14 @@ feed quick-news
                         │ exec: trigger
                         ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              ~/.newsship/generate-feed                      │
+│                 ~/.newsship/newsship                        │
 │                  (Rust binary)                               │
 │                                                              │
 │  1. Parse command-line args (feed name)                     │
 │  2. Read ~/.newsship/feeds.conf                             │
 │  3. Load feed configuration                                 │
 │  4. Check cache (if not expired, return cached XML)         │
-│  5. Call AI API (Claude/OpenAI)                             │
+│  5. Call AI API (OpenAI/Claude)                             │
 │  6. Generate RSS 2.0 XML                                    │
 │  7. Write to cache                                          │
 │  8. Output XML to stdout                                    │
@@ -188,11 +188,11 @@ feed quick-news
 │                    AI Services                               │
 │                                                              │
 │  ┌──────────────────┐         ┌──────────────────┐         │
-│  │  Claude API      │         │  OpenAI API      │         │
+│  │  OpenAI API      │         │  Claude API      │         │
 │  │  (Primary)       │         │  (Fallback)      │         │
 │  │                  │         │                  │         │
-│  │  - Web search    │         │  - Chat API      │         │
-│  │  - Native cites  │         │  + Serper API    │         │
+│  │  - Chat API      │         │  - Web search    │         │
+│  │  - GPT-4o        │         │  - Native cites  │         │
 │  └──────────────────┘         └──────────────────┘         │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -205,8 +205,8 @@ feed quick-news
 - **Configuration:** `~/.newsboat/urls`
 - **Entry Format:**
   ```
-  exec:~/.newsship/generate-feed tech-news
-  exec:~/.newsship/generate-feed security-news
+  exec:~/.newsship/newsship tech-news
+  exec:~/.newsship/newsship security-news
   ```
 - **Behavior:**
   - Newsboat executes the script during reload cycle
@@ -215,10 +215,10 @@ feed quick-news
   - Caches in SQLite database
   - Uses GUIDs for deduplication
 
-#### 2.2.2 Feed Generator Script
+#### 2.2.2 Feed Generator Binary
 
-**Name:** `generate-feed` (Rust binary)
-**Location:** `~/.newsship/generate-feed`
+**Name:** `newsship` (Rust binary)
+**Location:** `~/.newsship/newsship`
 **Language:** Rust
 **Dependencies:**
 - `reqwest` - HTTP client with async support
@@ -230,7 +230,7 @@ feed quick-news
 
 **Command-Line Interface:**
 ```bash
-~/.newsship/generate-feed <feed-name> [options]
+~/.newsship/newsship <feed-name> [options]
 
 Arguments:
   <feed-name>           Feed identifier from feeds.conf
@@ -283,7 +283,7 @@ fn main() {
 
 ```conf
 # Global settings (optional - all have defaults)
-default-provider claude          # claude | openai
+default-provider openai          # openai | claude
 cache-dir ~/.newsship/cache
 log-level info                   # error | warn | info | debug
 
@@ -294,28 +294,28 @@ global-prompt "You are an expert news curator. Provide accurate, concise summari
 feed tech-news
   prompt "Find 10 recent articles about AI breakthroughs and emerging technology from the last 48 hours"
   # Optional overrides (all have smart defaults)
-  # provider claude
-  # model claude-sonnet-4-5
+  # provider openai
+  # model gpt-4o
   # refresh 3600
   # max-articles 10
   # temperature 0.3
 
 feed security-news
   prompt "Find the latest cybersecurity vulnerabilities, CVEs, and security incidents"
-  model haiku                    # Faster/cheaper for frequent updates
+  model gpt-4o-mini              # Faster/cheaper for frequent updates
   refresh 1800                   # Update every 30 minutes
 
 feed custom-topic
   prompt "Articles about Rust programming language and systems programming"
-  provider openai                # Override default provider
-  model gpt-4o
+  provider claude                # Override default provider
+  model claude-sonnet-4-5
   max-articles 5
   temperature 0.2
 ```
 
 **Smart Defaults:**
-- `provider`: Uses Claude if `ANTHROPIC_API_KEY` set, else OpenAI if `OPENAI_API_KEY` set
-- `model`: `claude-sonnet-4-5` for Claude, `gpt-4o` for OpenAI
+- `provider`: Uses OpenAI if `OPENAI_API_KEY` set, else Claude if `ANTHROPIC_API_KEY` set
+- `model`: `gpt-4o` for OpenAI, `claude-sonnet-4-5` for Claude
 - `refresh`: 3600 seconds (1 hour)
 - `max-articles`: 10
 - `temperature`: 0.3 (deterministic but creative)
@@ -491,7 +491,7 @@ impl AIProvider {
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Tech News [AI]</title>
+    <title>Tech News</title>
     <link>https://newsship.local/tech-news</link>
     <description>AI-generated feed: Recent AI breakthroughs</description>
     <language>en-us</language>
@@ -617,15 +617,15 @@ fn write_cache(feed: &FeedConfig, xml: &str) -> Result<()> {
 
 ### Phase 1: Minimal Viable Product (Week 1-2)
 
-**Goal:** Working AI feed generation with Claude only
+**Goal:** Working AI feed generation with OpenAI
 
 **Deliverables:**
 - [ ] Rust project scaffolding
 - [ ] CLI argument parsing
 - [ ] Basic config file parser (feed name + prompt only)
-- [ ] Claude API integration
+- [ ] OpenAI API integration
   - [ ] Authentication
-  - [ ] Web search request
+  - [ ] Chat completion request
   - [ ] Response parsing
 - [ ] RSS 2.0 XML generation
 - [ ] GUID generation algorithm
@@ -633,7 +633,7 @@ fn write_cache(feed: &FeedConfig, xml: &str) -> Result<()> {
 - [ ] Manual testing with newsboat
 
 **Success Criteria:**
-- `exec:~/.newsship/generate-feed tech-news` produces valid RSS XML
+- `exec:~/.newsship/newsship tech-news` produces valid RSS XML
 - Newsboat parses and displays AI-generated articles
 - Articles include summaries and source links
 
@@ -659,14 +659,14 @@ fn write_cache(feed: &FeedConfig, xml: &str) -> Result<()> {
   - [ ] Debug mode
   - [ ] Error logs to file
   - [ ] Stdout remains clean RSS
-- [ ] OpenAI provider implementation
+- [ ] Claude provider implementation (fallback)
 - [ ] Provider fallback logic
 
 **Success Criteria:**
 - Script handles missing API keys gracefully
 - Cache prevents redundant API calls
 - Errors logged but don't crash newsboat
-- Works with both Claude and OpenAI
+- Works with both OpenAI and Claude
 
 ### Phase 3: Distribution & Documentation (Week 5-6)
 
@@ -743,8 +743,8 @@ fn write_cache(feed: &FeedConfig, xml: &str) -> Result<()> {
 ### 4.1 Environment Variables
 
 **Required (at least one):**
-- `ANTHROPIC_API_KEY` - Claude API key
-- `OPENAI_API_KEY` - OpenAI API key
+- `OPENAI_API_KEY` - OpenAI API key (primary)
+- `ANTHROPIC_API_KEY` - Claude API key (fallback)
 
 **Optional:**
 - `NEWSSHIP_CONFIG` - Custom config file path (default: `~/.newsship/feeds.conf`)
@@ -762,14 +762,14 @@ https://news.ycombinator.com/rss
 https://arstechnica.com/feed/
 
 # AI-generated feeds
-exec:~/.newsship/generate-feed tech-news
-exec:~/.newsship/generate-feed security-news
-exec:~/.newsship/generate-feed rust-weekly
+exec:~/.newsship/newsship tech-news
+exec:~/.newsship/newsship security-news
+exec:~/.newsship/newsship rust-weekly
 ```
 
 **Optional tags:**
 ```
-exec:~/.newsship/generate-feed tech-news "Tech News [AI]" ai tech
+exec:~/.newsship/newsship tech-news "Tech News" ai tech
 ```
 
 ### 4.3 Feed Configuration File
@@ -786,7 +786,7 @@ exec:~/.newsship/generate-feed tech-news "Tech News [AI]" ai tech
 # Global Settings (all optional)
 # ============================================
 
-default-provider claude
+default-provider openai
 cache-dir ~/.newsship/cache
 log-level info
 
@@ -802,14 +802,14 @@ feed tech-news
 
 feed security-news
   prompt "Latest cybersecurity incidents, CVEs, and vulnerability disclosures"
-  model haiku
+  model gpt-4o-mini
   refresh 1800
   max-articles 15
 
 feed rust-weekly
   prompt "Recent articles about Rust programming, including libraries, tutorials, and community updates"
-  provider openai
-  model gpt-4o
+  provider claude
+  model claude-sonnet-4-5
   temperature 0.2
 
 feed academic-ai
@@ -842,7 +842,7 @@ feed academic-ai
 **Must Have:**
 - ✅ Generate valid RSS 2.0 XML from AI prompts
 - ✅ Work with unmodified newsboat via `exec:` mechanism
-- ✅ Support Claude and OpenAI providers
+- ✅ Support OpenAI and Claude providers
 - ✅ Cache generated feeds to minimize API calls
 - ✅ Generate stable GUIDs for deduplication
 - ✅ Handle missing API keys gracefully
@@ -851,7 +851,7 @@ feed academic-ai
 
 **Should Have:**
 - ✅ Smart defaults for all settings
-- ✅ Provider fallback (Claude → OpenAI)
+- ✅ Provider fallback (OpenAI → Claude)
 - ✅ Rate limiting detection and retry
 - ✅ Debug logging to file
 - ✅ Force refresh option
@@ -933,7 +933,6 @@ feed academic-ai
 ### Advanced Features (Community-Driven)
 
 - **Custom LLM support:** OpenRouter, local models (Ollama)
-- **Prompt templates:** Pre-built prompts for common use cases
 - **Smart scheduling:** Refresh based on feed volatility
 - **Article quality scoring:** Filter low-quality AI summaries
 - **Multi-language support:** Non-English news feeds
@@ -941,30 +940,29 @@ feed academic-ai
 
 ---
 
-## 8. Open Questions
+## 8. Design Decisions (Resolved)
 
-**For discussion before implementation:**
+**Key decisions made during planning:**
 
-1. **Feed naming in newsboat:**
-   - How should AI feeds be titled in the feed list?
-   - Can we append `[AI]` to titles via config, or does it need to be in XML?
-   - Should we use newsboat tags for visual differentiation?
+1. **Binary name:** `newsship` - simple, memorable, matches project name
 
-2. **Default models:**
-   - Start with Sonnet 4.5 as default, or Haiku for cost savings?
-   - Should there be a "fast mode" (Haiku) vs "quality mode" (Sonnet)?
+2. **Primary provider:** OpenAI (with Claude as fallback)
+   - Default model: GPT-4o for quality, GPT-4o-mini for cost savings
+   - Users can override per-feed
 
-3. **Prompt engineering:**
-   - Should we provide a prompt template library?
-   - Should global-prompt be enabled by default or opt-in?
+3. **Visual indicators:** None - AI feeds appear identical to traditional RSS feeds
 
-4. **Installation strategy:**
-   - Ship as newsboat fork, or separate tool that works with stock newsboat?
-   - If fork: how to handle upstream newsboat updates?
+4. **Installation strategy:** Standalone tool that works with stock newsboat
+   - No fork required, no upstream compatibility issues
+   - Users continue using their existing newsboat installation
 
-5. **Error visibility:**
-   - Should errors appear in newsboat UI or only in log files?
-   - What level of detail is helpful vs overwhelming?
+5. **Prompt configuration:** User-written prompts only
+   - No built-in template library (keeps it simple)
+   - Sample prompts provided in example config file
+
+6. **Error handling:** Errors logged to `~/.newsship/error.log` only
+   - Clean stdout for RSS output
+   - Users can tail log file for debugging
 
 ---
 
@@ -973,12 +971,12 @@ feed academic-ai
 **Before implementation begins:**
 
 1. ✅ Review and approve this architecture document
-2. ⏳ Resolve open questions above
+2. ✅ Resolve design decisions
 3. ⏳ Set up GitHub repository structure
 4. ⏳ Create initial Rust project scaffold
 5. ⏳ Begin Phase 1 implementation
 
-**Approval needed from:** Project maintainer / lead developer
+**Status:** Ready for implementation approval
 
 **Estimated time to first working prototype:** 2 weeks from approval
 
@@ -997,7 +995,7 @@ feed tech-digest
 ```conf
 feed security-alerts
   prompt "Latest CVEs, security vulnerabilities, and data breaches from the last 12 hours"
-  model haiku
+  model gpt-4o-mini
   refresh 1800
   max-articles 20
 ```
@@ -1021,11 +1019,11 @@ feed sf-bay-news
 
 ## Appendix B: Troubleshooting Guide
 
-### Problem: Feed shows "Error: ANTHROPIC_API_KEY not set"
+### Problem: Feed shows "Error: OPENAI_API_KEY not set"
 
 **Solution:**
 ```bash
-export ANTHROPIC_API_KEY="sk-ant-..."
+export OPENAI_API_KEY="sk-..."
 # Add to ~/.bashrc or ~/.zshrc for persistence
 ```
 
@@ -1039,7 +1037,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 **Solution:**
 ```bash
 # Force refresh (bypass cache)
-~/.newsship/generate-feed tech-news --force-refresh
+~/.newsship/newsship tech-news --force-refresh
 
 # Check logs
 tail -f ~/.newsship/error.log
@@ -1054,7 +1052,7 @@ ls -lh ~/.newsship/cache/
 1. Refine prompt to be more specific
 2. Add examples in prompt
 3. Lower temperature (0.1-0.2 for more deterministic)
-4. Try different model (Sonnet for quality, GPT-4o for variety)
+4. Try different model (GPT-4o for quality, Claude Sonnet for alternative perspective)
 
 ### Problem: "Rate limited" errors
 
