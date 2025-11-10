@@ -61,7 +61,7 @@ impl ClaudeProvider {
 
     fn build_prompt(&self, feed_prompt: &str) -> String {
         let system_prompt = self.global_prompt.as_deref().unwrap_or(
-            "You are an expert news curator. Provide accurate, concise summaries with source URLs."
+            "You are an expert news curator. CRITICAL: Only return real articles from legitimate sources (news sites, blogs, social media, etc.). Each article must be verifiable with a working URL that links to actual published content. Never fabricate or hallucinate sources, URLs, or articles."
         );
 
         format!(
