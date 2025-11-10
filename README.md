@@ -60,14 +60,12 @@ echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
 **Option A: Use the sample configuration (recommended)**
 
 ```bash
-# Copy the sample configuration file
+# Copy and customize the sample configuration
 cp feeds.conf.sample ~/.newsship/feeds.conf
-
-# Edit it to customize your feeds
 nano ~/.newsship/feeds.conf
 ```
 
-The sample configuration includes 10+ example feeds with detailed comments explaining all options.
+The `feeds.conf.sample` file includes 10+ example feeds with detailed comments explaining all configuration options, prompt writing tips, and cost optimization strategies.
 
 **Option B: Create a minimal configuration**
 
@@ -110,22 +108,6 @@ newsboat
 Press `r` to reload feeds. AI feeds will be generated alongside traditional RSS feeds.
 
 ## Configuration
-
-### Sample Configuration File
-
-A comprehensive sample configuration file is included: `feeds.conf.sample`
-
-This file contains:
-- 10+ example feeds covering various use cases
-- Detailed comments explaining every configuration option
-- Tips for prompt writing, cost optimization, and performance tuning
-- Quick setup instructions
-
-**To use it:**
-```bash
-cp feeds.conf.sample ~/.newsship/feeds.conf
-nano ~/.newsship/feeds.conf  # Customize to your needs
-```
 
 ### Feed Configuration Format
 
