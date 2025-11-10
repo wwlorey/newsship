@@ -33,14 +33,11 @@ cd newsship
 # Build the release binary
 cargo build --release
 
-# Create newsship directory and copy files
-mkdir -p ~/.newsship
+# Copy binary to your PATH
 cp target/release/newsship ~/.newsship/newsship
-cp feeds.conf.sample ~/.newsship/feeds.conf.sample
 
-# Or install globally (and copy sample config)
+# Or install globally
 cargo install --path .
-cp feeds.conf.sample ~/.newsship/feeds.conf.sample
 ```
 
 ## Quick Start
