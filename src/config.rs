@@ -14,7 +14,7 @@ impl Provider {
     pub fn from_str(s: &str) -> Result<Self> {
         match s.to_lowercase().as_str() {
             "openai" => Ok(Provider::OpenAI),
-            "claude" => Ok(Provider::Claude),
+            "anthropic" => Ok(Provider::Claude),
             _ => Err(NewsshipError::Config(format!("Unknown provider: {}", s))),
         }
     }
@@ -22,7 +22,7 @@ impl Provider {
     pub fn as_str(&self) -> &str {
         match self {
             Provider::OpenAI => "openai",
-            Provider::Claude => "claude",
+            Provider::Claude => "anthropic",
         }
     }
 }
@@ -259,7 +259,7 @@ feed tech-news
 
 feed security-news
   prompt "Latest CVEs"
-  provider claude
+  provider anthropic
   temperature 0.2
 "#;
 

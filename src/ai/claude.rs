@@ -91,7 +91,7 @@ Return ONLY the JSON array, nothing else."#,
     }
 
     async fn call_api(&self, prompt: &str) -> Result<String> {
-        debug!("Calling Claude API with model: {}", self.model);
+        debug!("Calling Anthropic API with model: {}", self.model);
 
         let request_body = json!({
             "model": self.model,
@@ -123,11 +123,11 @@ Return ONLY the JSON array, nothing else."#,
                 return Err(NewsshipError::RateLimited(60));
             } else if status.as_u16() == 401 {
                 return Err(NewsshipError::AuthenticationFailed(
-                    "Invalid Claude API key".to_string(),
+                    "Invalid Anthropic API key".to_string(),
                 ));
             } else {
                 return Err(NewsshipError::ProviderError(format!(
-                    "Claude API error {}: {}",
+                    "Anthropic API error {}: {}",
                     status, error_text
                 )));
             }
@@ -137,7 +137,7 @@ Return ONLY the JSON array, nothing else."#,
 
         if claude_response.content.is_empty() {
             return Err(NewsshipError::InvalidResponse(
-                "No content in Claude response".to_string(),
+                "No content in Anthropic response".to_string(),
             ));
         }
 
@@ -145,7 +145,7 @@ Return ONLY the JSON array, nothing else."#,
     }
 
     fn parse_articles(&self, content: &str) -> Result<Vec<Article>> {
-        debug!("Parsing Claude response");
+        debug!("Parsing Anthropic response");
 
         // Try to extract JSON array from the response
         let json_str = if let Some(start) = content.find('[') {
@@ -159,7 +159,7 @@ Return ONLY the JSON array, nothing else."#,
         };
 
         let articles_data: Vec<ArticleData> = serde_json::from_str(json_str).map_err(|e| {
-            warn!("Failed to parse Claude response as JSON: {}", e);
+            warn!("Failed to parse Anthropic response as JSON: {}", e);
             warn!("Response content: {}", content);
             NewsshipError::InvalidResponse(format!("Failed to parse article JSON: {}", e))
         })?;
@@ -223,7 +223,7 @@ Return ONLY the JSON array, nothing else."#,
 #[async_trait]
 impl AIProvider for ClaudeProvider {
     async fn generate_articles(&self, feed_config: &FeedConfig) -> Result<Vec<Article>> {
-        info!("Generating articles using Claude ({})", self.model);
+        info!("Generating articles using Anthropic ({})", self.model);
 
         let prompt = self.build_prompt(&feed_config.prompt);
         let content = self.generate_with_retry(&prompt, 3).await?;
@@ -236,6 +236,6 @@ impl AIProvider for ClaudeProvider {
     }
 
     fn name(&self) -> &str {
-        "Claude"
+        "Anthropic"
     }
 }

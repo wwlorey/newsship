@@ -25,7 +25,7 @@ All end-to-end scenarios have been verified and the application is ready for pro
 - [x] Feed sections are properly recognized
 - [x] Indented properties are correctly associated with feeds
 - [x] Global settings are parsed separately from feed properties
-- [x] Smart defaults are applied (OpenAI primary, Claude fallback)
+- [x] Smart defaults are applied (OpenAI primary, Anthropic fallback)
 - [x] Environment variables are correctly detected
 
 **Bug Fixed:** Configuration parser was trimming lines before checking indentation, causing feed properties to be misidentified as global settings. Fixed by preserving original line for indentation detection while using trimmed content for parsing.
@@ -112,7 +112,7 @@ feed rust-news
 
 ## Known Limitations
 
-1. **No actual API testing** - Testing was done without calling OpenAI/Claude APIs to avoid costs. Real API integration should be tested separately with valid API keys.
+1. **No actual API testing** - Testing was done without calling OpenAI/Anthropic APIs to avoid costs. Real API integration should be tested separately with valid API keys.
 
 2. **Warning messages** - Non-critical compiler warnings about unused code (will be used in production):
    - `AIProvider::name()` method (used for logging)

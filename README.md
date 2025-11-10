@@ -6,10 +6,31 @@ AI-generated RSS feeds for newsboat. Turn any natural language query into an RSS
 
 Newsship is a standalone tool that integrates with [newsboat](https://newsboat.org/) to provide AI-generated RSS feeds. Simply describe what news you want, and newsship will use AI to find and summarize relevant articles.
 
+### How Newsship and Newsboat Work Together
+
+**Newsboat** is a terminal-based RSS/Atom feed reader. It reads RSS feeds from URLs you configure.
+
+**Newsship** is a separate program that generates AI-powered RSS feeds on demand. It acts as a "smart RSS feed generator."
+
+**The Integration:**
+1. You configure newsboat to run newsship using the `exec:` URL scheme
+2. When newsboat needs to fetch a feed, it executes newsship with your feed name
+3. Newsship calls an AI API (OpenAI or Anthropic) with your natural language prompt
+4. The AI finds relevant articles and newsship formats them as RSS XML
+5. Newsboat receives the RSS and displays articles just like any other feed
+
+**Example:** Instead of subscribing to `https://hnrss.org/frontpage`, you can use `exec:~/.newsship/newsship tech-news` where newsship generates articles based on your custom prompt like "Find recent AI breakthroughs and emerging technology."
+
+**Key Benefits:**
+- No need to find and subscribe to dozens of RSS feeds
+- Get personalized news curated by AI
+- Articles are cached to minimize API costs (regenerate once per day)
+- Works with your existing newsboat installation (no modifications needed)
+
 ## Features
 
 - ✅ Works with standard newsboat (no fork required)
-- ✅ OpenAI and Claude API support
+- ✅ OpenAI and Anthropic API support
 - ✅ Natural language feed prompts
 - ✅ Smart caching to minimize API costs
 - ✅ Zero-config defaults (just set API key)
@@ -50,7 +71,7 @@ cargo install --path .
 # For OpenAI (primary)
 export OPENAI_API_KEY="sk-..."
 
-# Or for Claude (fallback)
+# Or for Anthropic (fallback)
 export ANTHROPIC_API_KEY="sk-ant-..."
 
 # Add to your shell config (~/.bashrc, ~/.zshrc, etc.) for persistence
@@ -59,7 +80,19 @@ echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
 
 ### 2. Create Feed Configuration
 
-Create `~/.newsship/feeds.conf` (see `examples/feeds.conf` for a complete example):
+**Option A: Use the sample configuration (recommended)**
+
+```bash
+# Copy and customize the sample configuration
+cp feeds.conf.sample ~/.newsship/feeds.conf
+nano ~/.newsship/feeds.conf
+```
+
+The `feeds.conf.sample` file includes 10+ example feeds with detailed comments explaining all configuration options, prompt writing tips, and cost optimization strategies. See also `examples/feeds.conf` for day-based caching examples.
+
+**Option B: Create a minimal configuration**
+
+Create `~/.newsship/feeds.conf`:
 
 ```conf
 # Global settings (optional)
@@ -109,7 +142,7 @@ Press `r` to reload feeds. AI feeds will be generated alongside traditional RSS 
 
 ```conf
 # Global settings
-default-provider openai          # openai | claude
+default-provider openai          # openai | anthropic
 cache-dir ~/.newsship/cache
 log-level info                   # error | warn | info | debug
 
@@ -130,7 +163,7 @@ feed <name>
 
 **Required (at least one):**
 - `OPENAI_API_KEY` - OpenAI API key (primary)
-- `ANTHROPIC_API_KEY` - Claude API key (fallback)
+- `ANTHROPIC_API_KEY` - Anthropic API key (fallback)
 
 **Optional:**
 - `NEWSSHIP_CONFIG` - Custom config file path (default: `~/.newsship/feeds.conf`)
@@ -217,7 +250,7 @@ Typical costs for 3-5 AI feeds with 2-4 reloads per day:
 **OpenAI GPT-4o-mini:**
 - ~$1-3/month (cheaper, faster)
 
-**Claude Sonnet:**
+**Anthropic Sonnet:**
 - ~$15-25/month (includes web search)
 
 **Tips to reduce costs:**
@@ -316,7 +349,7 @@ export OPENAI_API_KEY="sk-..."
 
 1. Make prompt more specific
 2. Lower temperature (0.1-0.2)
-3. Try different model (gpt-4o vs gpt-4o-mini)
+3. Try different model (gpt-4o vs gpt-4o-mini vs anthropic)
 
 ### Rate limited
 
@@ -336,7 +369,7 @@ newsship/
 │   ├── ai/
 │   │   ├── mod.rs    # AI provider trait
 │   │   ├── openai.rs # OpenAI implementation
-│   │   └── claude.rs # Claude implementation
+│   │   └── claude.rs # Anthropic implementation
 │   ├── rss.rs        # RSS generation
 │   ├── cache.rs      # Caching system
 │   └── error.rs      # Error types
@@ -374,8 +407,8 @@ MIT License - See LICENSE file for details
 ## Acknowledgments
 
 - [newsboat](https://newsboat.org/) - Excellent RSS reader
-- [OpenAI](https://openai.com/) - GPT models
-- [Anthropic](https://anthropic.com/) - Claude models
+- [OpenAI](https://openai.com/) - AI models
+- [Anthropic](https://anthropic.com/) - AI models
 
 ## Support
 

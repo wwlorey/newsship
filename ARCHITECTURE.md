@@ -48,7 +48,7 @@ Newsship is a standalone tool that adds AI-generated RSS feeds to newsboat, conf
 
 **Zero-Config Default Behavior**
 - If `OPENAI_API_KEY` is set, OpenAI is used automatically
-- If `ANTHROPIC_API_KEY` is set (and OpenAI key isn't), Claude is used as fallback
+- If `ANTHROPIC_API_KEY` is set (and OpenAI key isn't), Anthropic is used as fallback
 - Sensible defaults for refresh intervals, article counts, etc.
 
 ### 1.2 Daily Usage Workflow
@@ -188,7 +188,7 @@ feed quick-news
 │                    AI Services                               │
 │                                                              │
 │  ┌──────────────────┐         ┌──────────────────┐         │
-│  │  OpenAI API      │         │  Claude API      │         │
+│  │  OpenAI API      │         │  Anthropic API   │         │
 │  │  (Primary)       │         │  (Fallback)      │         │
 │  │                  │         │                  │         │
 │  │  - Chat API      │         │  - Web search    │         │
@@ -283,7 +283,7 @@ fn main() {
 
 ```conf
 # Global settings (optional - all have defaults)
-default-provider openai          # openai | claude
+default-provider openai          # openai | anthropic
 cache-dir ~/.newsship/cache
 log-level info                   # error | warn | info | debug
 
@@ -307,15 +307,15 @@ feed security-news
 
 feed custom-topic
   prompt "Articles about Rust programming language and systems programming"
-  provider claude                # Override default provider
+  provider anthropic             # Override default provider
   model claude-sonnet-4-5
   max-articles 5
   temperature 0.2
 ```
 
 **Smart Defaults:**
-- `provider`: Uses OpenAI if `OPENAI_API_KEY` set, else Claude if `ANTHROPIC_API_KEY` set
-- `model`: `gpt-4o` for OpenAI, `claude-sonnet-4-5` for Claude
+- `provider`: Uses OpenAI if `OPENAI_API_KEY` set, else Anthropic if `ANTHROPIC_API_KEY` set
+- `model`: `gpt-4o` for OpenAI, `claude-sonnet-4-5` for Anthropic
 - `refresh`: 3600 seconds (1 hour)
 - `max-articles`: 10
 - `temperature`: 0.3 (deterministic but creative)
@@ -371,7 +371,7 @@ struct Source {
 }
 ```
 
-**Claude Implementation:**
+**Anthropic Implementation:**
 ```rust
 struct ClaudeProvider {
     api_key: String,
@@ -659,7 +659,7 @@ fn write_cache(feed: &FeedConfig, xml: &str) -> Result<()> {
   - [ ] Debug mode
   - [ ] Error logs to file
   - [ ] Stdout remains clean RSS
-- [ ] Claude provider implementation (fallback)
+- [ ] Anthropic provider implementation (fallback)
 - [ ] Provider fallback logic
 
 **Success Criteria:**
@@ -744,7 +744,7 @@ fn write_cache(feed: &FeedConfig, xml: &str) -> Result<()> {
 
 **Required (at least one):**
 - `OPENAI_API_KEY` - OpenAI API key (primary)
-- `ANTHROPIC_API_KEY` - Claude API key (fallback)
+- `ANTHROPIC_API_KEY` - Anthropic API key (fallback)
 
 **Optional:**
 - `NEWSSHIP_CONFIG` - Custom config file path (default: `~/.newsship/feeds.conf`)
@@ -808,7 +808,7 @@ feed security-news
 
 feed rust-weekly
   prompt "Recent articles about Rust programming, including libraries, tutorials, and community updates"
-  provider claude
+  provider anthropic
   model claude-sonnet-4-5
   temperature 0.2
 
@@ -842,7 +842,7 @@ feed academic-ai
 **Must Have:**
 - ✅ Generate valid RSS 2.0 XML from AI prompts
 - ✅ Work with unmodified newsboat via `exec:` mechanism
-- ✅ Support OpenAI and Claude providers
+- ✅ Support OpenAI and Anthropic providers
 - ✅ Cache generated feeds to minimize API calls
 - ✅ Generate stable GUIDs for deduplication
 - ✅ Handle missing API keys gracefully
@@ -851,7 +851,7 @@ feed academic-ai
 
 **Should Have:**
 - ✅ Smart defaults for all settings
-- ✅ Provider fallback (OpenAI → Claude)
+- ✅ Provider fallback (OpenAI → Anthropic)
 - ✅ Rate limiting detection and retry
 - ✅ Debug logging to file
 - ✅ Force refresh option
@@ -946,7 +946,7 @@ feed academic-ai
 
 1. **Binary name:** `newsship` - simple, memorable, matches project name
 
-2. **Primary provider:** OpenAI (with Claude as fallback)
+2. **Primary provider:** OpenAI (with Anthropic as fallback)
    - Default model: GPT-4o for quality, GPT-4o-mini for cost savings
    - Users can override per-feed
 
@@ -1052,7 +1052,7 @@ ls -lh ~/.newsship/cache/
 1. Refine prompt to be more specific
 2. Add examples in prompt
 3. Lower temperature (0.1-0.2 for more deterministic)
-4. Try different model (GPT-4o for quality, Claude Sonnet for alternative perspective)
+4. Try different model (GPT-4o for quality, Anthropic Sonnet for alternative perspective)
 
 ### Problem: "Rate limited" errors
 
