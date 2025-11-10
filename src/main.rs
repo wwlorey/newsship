@@ -18,7 +18,7 @@ struct Args {
     command: Option<Commands>,
 
     /// Feed name to generate (when no subcommand specified)
-    #[arg(value_name = "FEED_NAME", global = true)]
+    #[arg(value_name = "FEED_NAME")]
     feed_name: Option<String>,
 
     /// Config file path
