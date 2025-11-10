@@ -244,7 +244,8 @@ async fn cmd_install(install_dir: Option<PathBuf>, skip_newsboat: bool) -> Resul
 
     // Copy example config if doesn't exist
     let config_path = install_dir.join("feeds.conf");
-    if !config_path.exists() {
+    let config_existed = config_path.exists();
+    if !config_existed {
         let example_config = include_str!("../examples/feeds.conf");
         fs::write(&config_path, example_config)
             .context("Failed to write example configuration")?;
@@ -254,24 +255,70 @@ async fn cmd_install(install_dir: Option<PathBuf>, skip_newsboat: bool) -> Resul
         println!("⚠ Configuration already exists at {}", config_path.display());
     }
 
+    // Generate feed-specific wrapper scripts for newsboat
+    // (Newsboat's exec: URLs don't support arguments, so each feed needs its own script)
+    if config_path.exists() {
+        match config::Config::load(&config_path) {
+            Ok(config) => {
+                let feeds = config.list_feeds();
+                if !feeds.is_empty() {
+                    println!("\n📝 Generating feed-specific wrapper scripts:");
+                    for feed_name in &feeds {
+                        let wrapper_path = install_dir.join(format!("{}.sh", feed_name));
+                        let wrapper_content = generate_feed_wrapper_content(&binary_dest, feed_name);
+                        fs::write(&wrapper_path, wrapper_content)
+                            .context(format!("Failed to write wrapper for {}", feed_name))?;
+
+                        #[cfg(unix)]
+                        {
+                            use std::os::unix::fs::PermissionsExt;
+                            let mut perms = fs::metadata(&wrapper_path)?.permissions();
+                            perms.set_mode(0o755);
+                            fs::set_permissions(&wrapper_path, perms)?;
+                        }
+
+                        println!("  ✓ {}", wrapper_path.display());
+                    }
+                }
+            }
+            Err(_) => {
+                // Config exists but couldn't be loaded, skip wrapper generation
+            }
+        }
+    }
+
     println!("\n✨ Installation complete!");
     println!("\nNext steps:");
     println!("1. Set your API key:");
     println!("   export OPENAI_API_KEY='your-key-here'");
     println!("   (Add to ~/.bashrc or ~/.zshrc for persistence)\n");
-    println!("2. Edit your feed configuration:");
-    println!("   {}\n", config_path.display());
+
+    if !config_existed {
+        println!("2. Edit your feed configuration:");
+        println!("   {}\n", config_path.display());
+    }
 
     if !skip_newsboat {
-        println!("3. Add feeds to newsboat (~/.newsboat/urls):");
-        println!("   exec:{} tech-news", script_path.display());
-        println!("   exec:{} security-news\n", script_path.display());
-        println!("4. Configure newsboat (~/.newsboat/config):");
+        match config::Config::load(&config_path) {
+            Ok(config) => {
+                let feeds = config.list_feeds();
+                if !feeds.is_empty() {
+                    println!("{}. Add feeds to newsboat (~/.newsboat/urls):", if config_existed { 2 } else { 3 });
+                    for feed_name in feeds {
+                        let wrapper_path = install_dir.join(format!("{}.sh", feed_name));
+                        println!("   exec:{}", wrapper_path.display());
+                    }
+                    println!();
+                }
+            }
+            Err(_) => {}
+        }
+        println!("{}. Configure newsboat (~/.newsboat/config):", if config_existed { 3 } else { 4 });
         println!("   auto-reload no\n");
     }
 
-    println!("5. Test your feed:");
-    println!("   {} tech-news", script_path.display());
+    println!("{}. Test your feed:", if config_existed && !skip_newsboat { 4 } else if config_existed || !skip_newsboat { 3 } else { 2 });
+    println!("   {} tech-news", binary_dest.display());
 
     Ok(())
 }
@@ -341,13 +388,28 @@ async fn cmd_add_feed(name: &str, prompt: &str, add_to_newsboat: bool, config_pa
         let install_dir = dirs::home_dir()
             .expect("Could not determine home directory")
             .join(".natty-lang-feeder");
-        let script_path = install_dir.join("natty-lang-feeder.sh");
+        let binary_path = install_dir.join("natty-lang-feeder");
 
-        if script_path.exists() {
+        if binary_path.exists() {
+            // Generate feed-specific wrapper script
+            let wrapper_path = install_dir.join(format!("{}.sh", name));
+            let wrapper_content = generate_feed_wrapper_content(&binary_path, name);
+            fs::write(&wrapper_path, wrapper_content)
+                .context("Failed to write feed wrapper script")?;
+
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let mut perms = fs::metadata(&wrapper_path)?.permissions();
+                perms.set_mode(0o755);
+                fs::set_permissions(&wrapper_path, perms)?;
+            }
+
+            println!("✓ Generated wrapper script: {}", wrapper_path.display());
             println!("\n📝 Add this line to ~/.newsboat/urls:");
-            println!("   exec:{} {}", script_path.display(), name);
+            println!("   exec:{}", wrapper_path.display());
         } else {
-            warn!("Shell script not found. Run 'natty-lang-feeder install' first.");
+            warn!("Binary not found. Run 'natty-lang-feeder install' first.");
         }
     }
 
@@ -432,16 +494,38 @@ async fn cmd_generate_script(output: Option<PathBuf>) -> Result<()> {
     Ok(())
 }
 
-/// Generate shell script content
+/// Generate shell script content (generic wrapper - for backward compatibility)
 fn generate_script_content(binary_path: &PathBuf) -> String {
     format!(
         r#"#!/bin/sh
 # Shell script for newsboat compatibility
 # Newsboat's exec: mechanism requires a script with a shebang
 
+# Suppress INFO logs for newsboat (it captures stderr too)
+export NATTY_LANG_FEEDER_LOG_LEVEL=error
+
 # Execute the natty-lang-feeder binary with all arguments passed through
 exec "{}" "$@"
 "#,
         binary_path.display()
+    )
+}
+
+/// Generate feed-specific wrapper script content
+/// Newsboat's exec: URLs don't support passing arguments, so each feed needs its own script
+fn generate_feed_wrapper_content(binary_path: &PathBuf, feed_name: &str) -> String {
+    format!(
+        r#"#!/bin/sh
+# Feed-specific wrapper for newsboat
+# Newsboat's exec: URLs don't support arguments, so each feed needs its own script
+
+# Suppress INFO logs for newsboat (it captures stderr too)
+export NATTY_LANG_FEEDER_LOG_LEVEL=error
+
+# Execute the natty-lang-feeder binary with the feed name
+exec "{}" "{}"
+"#,
+        binary_path.display(),
+        feed_name
     )
 }
