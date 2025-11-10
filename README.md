@@ -33,11 +33,14 @@ cd newsship
 # Build the release binary
 cargo build --release
 
-# Copy binary to your PATH
+# Create newsship directory and copy files
+mkdir -p ~/.newsship
 cp target/release/newsship ~/.newsship/newsship
+cp feeds.conf.sample ~/.newsship/feeds.conf.sample
 
-# Or install globally
+# Or install globally (and copy sample config)
 cargo install --path .
+cp feeds.conf.sample ~/.newsship/feeds.conf.sample
 ```
 
 ## Quick Start
@@ -56,6 +59,20 @@ echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
 ```
 
 ### 2. Create Feed Configuration
+
+**Option A: Use the sample configuration (recommended)**
+
+```bash
+# Copy the sample configuration file
+cp feeds.conf.sample ~/.newsship/feeds.conf
+
+# Edit it to customize your feeds
+nano ~/.newsship/feeds.conf
+```
+
+The sample configuration includes 10+ example feeds with detailed comments explaining all options.
+
+**Option B: Create a minimal configuration**
 
 Create `~/.newsship/feeds.conf`:
 
@@ -96,6 +113,22 @@ newsboat
 Press `r` to reload feeds. AI feeds will be generated alongside traditional RSS feeds.
 
 ## Configuration
+
+### Sample Configuration File
+
+A comprehensive sample configuration file is included: `feeds.conf.sample`
+
+This file contains:
+- 10+ example feeds covering various use cases
+- Detailed comments explaining every configuration option
+- Tips for prompt writing, cost optimization, and performance tuning
+- Quick setup instructions
+
+**To use it:**
+```bash
+cp feeds.conf.sample ~/.newsship/feeds.conf
+nano ~/.newsship/feeds.conf  # Customize to your needs
+```
 
 ### Feed Configuration Format
 
