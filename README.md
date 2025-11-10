@@ -13,7 +13,7 @@ Instead of hunting for the perfect RSS feed, just describe what you want in plai
 - 🎯 **Self-managing**: One command installs everything automatically
 - 🔧 **Built-in tools**: Add feeds, list feeds, manage installation - all from the binary
 - 🚀 **Zero friction**: Build once, run `install`, start reading
-- 📦 **Wrapper auto-generated**: Newsboat compatibility handled automatically
+- 📦 **Newsboat integration**: Compatibility handled automatically during install
 - 💰 **Cost-effective**: Day-based caching minimizes API calls (~$2-10/month)
 
 ## Using with Newsboat
@@ -32,9 +32,9 @@ Natty Lang Feeder works seamlessly with [newsboat](https://newsboat.org/), a pop
 # Traditional RSS feeds
 https://news.ycombinator.com/rss
 
-# AI-generated feeds (use the wrapper script for newsboat compatibility)
-exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news
-exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh security-news
+# AI-generated feeds
+exec:~/.natty-lang-feeder/natty-lang-feeder.sh tech-news
+exec:~/.natty-lang-feeder/natty-lang-feeder.sh security-news
 ```
 
 That's it. When newsboat loads, it runs natty-lang-feeder, which generates your custom RSS feed on demand. Articles are cached daily to minimize API costs.
@@ -70,12 +70,10 @@ cargo build --release
 
 That's it! The `install` command automatically:
 - Copies the binary to `~/.natty-lang-feeder/`
-- Generates the newsboat wrapper script (required for newsboat compatibility)
+- Generates a shell script for newsboat integration
 - Creates example configuration at `~/.natty-lang-feeder/feeds.conf`
 - Sets up cache directory
 - Shows you the next steps
-
-**Why a wrapper?** Newsboat's `exec:` mechanism requires shell scripts with shebangs. The wrapper is auto-generated and invisible to users - you don't need to think about it.
 
 **Alternative: Manual Installation**
 
@@ -103,8 +101,8 @@ natty-lang-feeder add-feed ai-news "Latest AI breakthroughs and research papers"
 # List all configured feeds
 natty-lang-feeder list-feeds
 
-# Generate wrapper script to stdout
-natty-lang-feeder generate-wrapper
+# Generate shell script to stdout
+natty-lang-feeder generate-script
 
 # Uninstall (removes ~/.natty-lang-feeder)
 natty-lang-feeder uninstall
@@ -169,12 +167,12 @@ Edit `~/.newsboat/urls` (see `examples/newsboat-urls` for a complete example):
 # Traditional RSS feeds
 https://news.ycombinator.com/rss
 
-# AI-generated feeds (use wrapper script for newsboat compatibility)
-exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news
-exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh security-news
+# AI-generated feeds
+exec:~/.natty-lang-feeder/natty-lang-feeder.sh tech-news
+exec:~/.natty-lang-feeder/natty-lang-feeder.sh security-news
 ```
 
-**Important:** Always use `natty-lang-feeder-wrapper.sh` (not the binary directly). Newsboat's `exec:` requires shell scripts with shebangs.
+**Important:** Always use `natty-lang-feeder.sh` (not the binary directly). Newsboat's `exec:` requires shell scripts with shebangs.
 
 And configure `~/.newsboat/config` to prevent auto-reloads (see `examples/newsboat-config`):
 
@@ -235,7 +233,7 @@ Subcommands:
   uninstall            Uninstall natty-lang-feeder
   add-feed <name> <prompt>  Add a new feed to configuration
   list-feeds           List all configured feeds
-  generate-wrapper     Generate wrapper script for newsboat
+  generate-script      Generate shell script for newsboat
   generate <feed>      Generate RSS feed (explicit command)
   help                 Print help information
 
@@ -259,7 +257,7 @@ Examples:
   # List configured feeds
   natty-lang-feeder list-feeds
 
-  # Generate a feed (used by newsboat wrapper)
+  # Generate a feed (used by newsboat)
   natty-lang-feeder tech-news
   natty-lang-feeder tech-news --force-refresh
 ```
@@ -300,8 +298,8 @@ feed sf-bay-news
 ## How It Works
 
 1. **Build once** → Run `natty-lang-feeder install` → Everything is set up
-2. **newsboat** detects `exec:` URLs and runs the auto-generated wrapper script
-3. The **wrapper script** executes the natty-lang-feeder binary with your feed name
+2. **newsboat** detects `exec:` URLs and runs the shell script
+3. The **shell script** executes the natty-lang-feeder binary with your feed name
 4. **natty-lang-feeder** reads your feed configuration and checks the cache
 5. If cache is expired, it calls the AI API with your prompt
 6. AI returns articles with titles, summaries, and source URLs
@@ -310,9 +308,8 @@ feed sf-bay-news
 
 **Self-Managing Architecture:**
 - The binary installs itself with one command: `natty-lang-feeder install`
-- Auto-generates wrapper script (required for newsboat compatibility)
+- Auto-generates shell script for newsboat compatibility
 - Built-in commands for feed management: `add-feed`, `list-feeds`, `uninstall`
-- Wrapper is an implementation detail - users don't need to think about it
 
 ## Caching
 
@@ -422,11 +419,11 @@ natty-lang-feeder tech-news --force-refresh
 
 **Symptom:** AI feed doesn't appear or shows an error after pressing 'r' in newsboat.
 
-**Solution:** Make sure you're using the wrapper script in your `~/.newsboat/urls` file:
+**Solution:** Make sure you're using the shell script in your `~/.newsboat/urls` file:
 
 ```
-# ✅ Correct - uses wrapper script
-exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news
+# ✅ Correct - uses shell script
+exec:~/.natty-lang-feeder/natty-lang-feeder.sh tech-news
 
 # ❌ Wrong - binary doesn't have shebang
 exec:~/.natty-lang-feeder/natty-lang-feeder tech-news
@@ -436,7 +433,7 @@ exec:~/.natty-lang-feeder/natty-lang-feeder tech-news
 
 **Test your feed manually:**
 ```bash
-~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news
+~/.natty-lang-feeder/natty-lang-feeder.sh tech-news
 # Should output valid RSS XML
 ```
 
@@ -450,7 +447,7 @@ export OPENAI_API_KEY="sk-..."
 ### Feed not updating
 
 1. Check cache TTL: `ls -lh ~/.natty-lang-feeder/cache/`
-2. Force refresh: `~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news --force-refresh`
+2. Force refresh: `~/.natty-lang-feeder/natty-lang-feeder.sh tech-news --force-refresh`
 3. Check logs: `~/.natty-lang-feeder/error.log`
 
 ### Poor quality summaries

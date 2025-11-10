@@ -74,8 +74,8 @@ enum Commands {
     /// List all configured feeds
     ListFeeds,
 
-    /// Generate wrapper script for newsboat
-    GenerateWrapper {
+    /// Generate shell script for newsboat
+    GenerateScript {
         /// Output path (default: stdout)
         #[arg(short, long)]
         output: Option<PathBuf>,
@@ -131,8 +131,8 @@ async fn run() -> Result<()> {
         Some(Commands::ListFeeds) => {
             cmd_list_feeds(args.config).await
         }
-        Some(Commands::GenerateWrapper { output }) => {
-            cmd_generate_wrapper(output).await
+        Some(Commands::GenerateScript { output }) => {
+            cmd_generate_script(output).await
         }
         Some(Commands::Generate { feed_name, force_refresh }) => {
             cmd_generate(&feed_name, args.config, force_refresh).await
@@ -219,22 +219,22 @@ async fn cmd_install(install_dir: Option<PathBuf>, skip_newsboat: bool) -> Resul
 
     println!("✓ Binary installed to {}", binary_dest.display());
 
-    // Generate and install wrapper script
-    let wrapper_path = install_dir.join("natty-lang-feeder-wrapper.sh");
-    let wrapper_content = generate_wrapper_content(&binary_dest);
-    fs::write(&wrapper_path, wrapper_content)
-        .context("Failed to write wrapper script")?;
+    // Generate and install shell script for newsboat
+    let script_path = install_dir.join("natty-lang-feeder.sh");
+    let script_content = generate_script_content(&binary_dest);
+    fs::write(&script_path, script_content)
+        .context("Failed to write shell script")?;
 
-    // Make wrapper executable
+    // Make script executable
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let mut perms = fs::metadata(&wrapper_path)?.permissions();
+        let mut perms = fs::metadata(&script_path)?.permissions();
         perms.set_mode(0o755);
-        fs::set_permissions(&wrapper_path, perms)?;
+        fs::set_permissions(&script_path, perms)?;
     }
 
-    println!("✓ Wrapper script installed to {}", wrapper_path.display());
+    println!("✓ Shell script installed to {}", script_path.display());
 
     // Create cache directory
     let cache_dir = install_dir.join("cache");
@@ -264,14 +264,14 @@ async fn cmd_install(install_dir: Option<PathBuf>, skip_newsboat: bool) -> Resul
 
     if !skip_newsboat {
         println!("3. Add feeds to newsboat (~/.newsboat/urls):");
-        println!("   exec:{} tech-news", wrapper_path.display());
-        println!("   exec:{} security-news\n", wrapper_path.display());
+        println!("   exec:{} tech-news", script_path.display());
+        println!("   exec:{} security-news\n", script_path.display());
         println!("4. Configure newsboat (~/.newsboat/config):");
         println!("   auto-reload no\n");
     }
 
     println!("5. Test your feed:");
-    println!("   {} tech-news", wrapper_path.display());
+    println!("   {} tech-news", script_path.display());
 
     Ok(())
 }
@@ -341,13 +341,13 @@ async fn cmd_add_feed(name: &str, prompt: &str, add_to_newsboat: bool, config_pa
         let install_dir = dirs::home_dir()
             .expect("Could not determine home directory")
             .join(".natty-lang-feeder");
-        let wrapper_path = install_dir.join("natty-lang-feeder-wrapper.sh");
+        let script_path = install_dir.join("natty-lang-feeder.sh");
 
-        if wrapper_path.exists() {
+        if script_path.exists() {
             println!("\n📝 Add this line to ~/.newsboat/urls:");
-            println!("   exec:{} {}", wrapper_path.display(), name);
+            println!("   exec:{} {}", script_path.display(), name);
         } else {
-            warn!("Wrapper script not found. Run 'natty-lang-feeder install' first.");
+            warn!("Shell script not found. Run 'natty-lang-feeder install' first.");
         }
     }
 
@@ -402,18 +402,18 @@ async fn cmd_list_feeds(config_path: Option<PathBuf>) -> Result<()> {
     Ok(())
 }
 
-/// Generate wrapper script
-async fn cmd_generate_wrapper(output: Option<PathBuf>) -> Result<()> {
+/// Generate shell script for newsboat
+async fn cmd_generate_script(output: Option<PathBuf>) -> Result<()> {
     let install_dir = dirs::home_dir()
         .expect("Could not determine home directory")
         .join(".natty-lang-feeder");
     let binary_path = install_dir.join("natty-lang-feeder");
 
-    let wrapper_content = generate_wrapper_content(&binary_path);
+    let script_content = generate_script_content(&binary_path);
 
     if let Some(output_path) = output {
-        fs::write(&output_path, &wrapper_content)
-            .context("Failed to write wrapper script")?;
+        fs::write(&output_path, &script_content)
+            .context("Failed to write shell script")?;
 
         // Make executable
         #[cfg(unix)]
@@ -424,20 +424,20 @@ async fn cmd_generate_wrapper(output: Option<PathBuf>) -> Result<()> {
             fs::set_permissions(&output_path, perms)?;
         }
 
-        println!("✓ Wrapper script written to {}", output_path.display());
+        println!("✓ Shell script written to {}", output_path.display());
     } else {
-        print!("{}", wrapper_content);
+        print!("{}", script_content);
     }
 
     Ok(())
 }
 
-/// Generate wrapper script content
-fn generate_wrapper_content(binary_path: &PathBuf) -> String {
+/// Generate shell script content
+fn generate_script_content(binary_path: &PathBuf) -> String {
     format!(
         r#"#!/bin/sh
-# Wrapper script for newsboat compatibility
-# Newsboat's exec: mechanism requires a shell script with a shebang
+# Shell script for newsboat compatibility
+# Newsboat's exec: mechanism requires a script with a shebang
 
 # Execute the natty-lang-feeder binary with all arguments passed through
 exec "{}" "$@"
