@@ -6,6 +6,27 @@ AI-generated RSS feeds for newsboat. Turn any natural language query into an RSS
 
 Newsship is a standalone tool that integrates with [newsboat](https://newsboat.org/) to provide AI-generated RSS feeds. Simply describe what news you want, and newsship will use AI to find and summarize relevant articles.
 
+### How Newsship and Newsboat Work Together
+
+**Newsboat** is a terminal-based RSS/Atom feed reader. It reads RSS feeds from URLs you configure.
+
+**Newsship** is a separate program that generates AI-powered RSS feeds on demand. It acts as a "smart RSS feed generator."
+
+**The Integration:**
+1. You configure newsboat to run newsship using the `exec:` URL scheme
+2. When newsboat needs to fetch a feed, it executes newsship with your feed name
+3. Newsship calls an AI API (OpenAI or Anthropic) with your natural language prompt
+4. The AI finds relevant articles and newsship formats them as RSS XML
+5. Newsboat receives the RSS and displays articles just like any other feed
+
+**Example:** Instead of subscribing to `https://hnrss.org/frontpage`, you can use `exec:~/.newsship/newsship tech-news` where newsship generates articles based on your custom prompt like "Find recent AI breakthroughs and emerging technology."
+
+**Key Benefits:**
+- No need to find and subscribe to dozens of RSS feeds
+- Get personalized news curated by AI
+- Articles are cached to minimize API costs (regenerate once per day)
+- Works with your existing newsboat installation (no modifications needed)
+
 ## Features
 
 - ✅ Works with standard newsboat (no fork required)
@@ -42,6 +63,8 @@ cargo install --path .
 
 ## Quick Start
 
+**Note:** See the `examples/` directory for complete configuration files.
+
 ### 1. Set API Key
 
 ```bash
@@ -65,7 +88,7 @@ cp feeds.conf.sample ~/.newsship/feeds.conf
 nano ~/.newsship/feeds.conf
 ```
 
-The `feeds.conf.sample` file includes 10+ example feeds with detailed comments explaining all configuration options, prompt writing tips, and cost optimization strategies.
+The `feeds.conf.sample` file includes 10+ example feeds with detailed comments explaining all configuration options, prompt writing tips, and cost optimization strategies. See also `examples/feeds.conf` for day-based caching examples.
 
 **Option B: Create a minimal configuration**
 
@@ -76,19 +99,18 @@ Create `~/.newsship/feeds.conf`:
 default-provider openai
 log-level info
 
-# Feed definitions
+# Feed definitions (day-based caching enabled by default)
 feed tech-news
   prompt "Find 10 recent articles about AI breakthroughs and emerging technology"
 
 feed security-news
   prompt "Latest CVEs and security vulnerabilities"
   model gpt-4o-mini
-  refresh 1800
 ```
 
 ### 3. Add to Newsboat
 
-Edit `~/.newsboat/urls` and add:
+Edit `~/.newsboat/urls` (see `examples/newsboat-urls` for a complete example):
 
 ```
 # Traditional RSS feeds
@@ -97,6 +119,13 @@ https://news.ycombinator.com/rss
 # AI-generated feeds
 exec:~/.newsship/newsship tech-news
 exec:~/.newsship/newsship security-news
+```
+
+And configure `~/.newsboat/config` to prevent auto-reloads (see `examples/newsboat-config`):
+
+```conf
+# Only reload when you press 'r', not automatically
+auto-reload no
 ```
 
 ### 4. Use Newsboat Normally
@@ -228,6 +257,78 @@ Typical costs for 3-5 AI feeds with 2-4 reloads per day:
 - Increase refresh intervals (3600+ seconds)
 - Use gpt-4o-mini for frequent updates
 - Reduce max-articles count
+
+## Controlling When AI Articles Are Generated
+
+Newsship is designed to **minimize API costs** by generating AI articles only once per day (based on calendar day boundaries in UTC).
+
+### Understanding the Day-Based Cache System
+
+Newsship only calls the AI API when:
+1. No cache exists for a feed
+2. The cache was generated on a previous day (UTC)
+3. You use `--force-refresh` flag
+
+**The cache is valid for the entire calendar day it was generated.** If you generate articles at 11pm on Monday, they'll regenerate when you open newsboat on Tuesday (even if it's 8am - less than 24 hours later). This ensures you always get fresh content when starting your day, without multiple API calls throughout the day.
+
+### Recommended Configuration for Minimal API Calls
+
+**1. Configure newsship feeds** (`~/.newsship/feeds.conf`):
+
+```conf
+# AI feeds - automatically cached per calendar day
+feed tech-news
+  prompt "Find 10 recent articles about AI breakthroughs"
+
+feed security-news
+  prompt "Latest security vulnerabilities"
+  model gpt-4o-mini
+
+# Note: The 'refresh' parameter is optional and not required
+# Articles automatically regenerate once per calendar day
+```
+
+**2. Configure newsboat to Only Reload on Startup** (`~/.newsboat/config`):
+
+```conf
+# Only reload feeds when newsboat starts, not automatically
+auto-reload no
+
+# Optional: reload feeds in the background on startup
+reload-only-visible-feeds no
+reload-threads 4
+```
+
+### Usage Pattern
+
+With this configuration:
+1. **Monday 8am: Open newsboat** → First time today, AI generates articles
+2. **Monday 9am: Reopen newsboat** → Uses cached articles from 8am, no API call
+3. **Monday 11pm: Reopen newsboat** → Still Monday, uses cache, no API call
+4. **Tuesday 7am: Open newsboat** → New day detected, AI generates fresh articles
+5. **Tuesday noon: Reopen newsboat** → Uses cached articles from 7am, no API call
+
+**Result:** Maximum of 1 API call per feed per day, only when you actually open newsboat on a new day.
+
+### Cost Example
+
+With this setup for 5 AI feeds:
+- **Daily cost:** Exactly 5 API calls/day (one per feed, only on first newsboat open each day)
+- **If you skip a day:** 0 API calls (newsship only runs when newsboat opens)
+- **Monthly cost:** ~$2-5 with gpt-4o-mini, ~$5-10 with gpt-4o
+
+### Manual Refresh When Needed
+
+If you want fresh articles during the same day (bypassing the day-based cache):
+
+```bash
+# Force refresh a specific feed
+newsship tech-news --force-refresh
+
+# Or use it directly in newsboat by temporarily modifying the URL
+```
+
+**Note:** With `auto-reload no` in newsboat, pressing `r` will reload all feeds and respect the day-based cache (only calling AI if it's a new day). AI feeds cached today will return instantly without API calls.
 
 ## Troubleshooting
 

@@ -1,0 +1,83 @@
+# Newsboat Configuration Example for Newsship
+# Copy this to ~/.newsboat/config
+
+# ============================================
+# Cost-Optimized Settings for AI Feeds
+# ============================================
+
+# CRITICAL: Only reload feeds when newsboat starts, not automatically
+# This is essential for day-based caching to work properly
+# Without this, newsboat may reload feeds multiple times per day
+auto-reload no
+
+# Alternative: Set a very long auto-reload interval (in minutes)
+# auto-reload yes
+# reload-time 1440  # 24 hours (not recommended - use auto-reload no instead)
+
+# Reload settings
+reload-only-visible-feeds no
+reload-threads 4
+
+# ============================================
+# Display Settings
+# ============================================
+
+# Show article index numbers
+show-read-feeds yes
+show-read-articles yes
+
+# Article list format
+articlelist-format "%4i %f %D  %?T?|%-17T| ?%t"
+
+# Feed list format
+feedlist-format "%4i %n %11u %t"
+
+# ============================================
+# Keybindings
+# ============================================
+
+# Use vim-style keybindings
+bind-key j down
+bind-key k up
+bind-key J next-feed
+bind-key K prev-feed
+bind-key g home
+bind-key G end
+bind-key l open
+bind-key h quit
+
+# Quick reload (press 'r' to manually refresh all feeds)
+bind-key r reload-all
+
+# ============================================
+# Colors
+# ============================================
+
+color background         white   black
+color listnormal         white   black
+color listnormal_unread  white   black   bold
+color listfocus          black   cyan
+color listfocus_unread   black   cyan    bold
+color info               black   cyan
+color article            white   black
+
+# ============================================
+# Browser
+# ============================================
+
+# Open articles in your default browser
+browser "xdg-open %u"
+
+# Or specify a browser explicitly:
+# browser "firefox %u"
+# browser "chromium %u"
+
+# ============================================
+# Misc
+# ============================================
+
+# Keep articles that were marked as read
+keep-articles-days 30
+
+# Maximum number of articles to keep
+max-items 100

@@ -1,0 +1,37 @@
+# Newsboat URLs Example for Newsship
+# Copy this to ~/.newsboat/urls
+
+# ============================================
+# Traditional RSS Feeds
+# ============================================
+
+https://news.ycombinator.com/rss "tech" "~Hacker News"
+https://lobste.rs/rss "tech" "~Lobsters"
+https://www.reddit.com/r/programming/.rss "tech" "~Reddit Programming"
+
+# ============================================
+# AI-Generated Feeds (via Newsship)
+# ============================================
+# Note: Update the path to your newsship binary
+# These will be cached based on your refresh settings in ~/.newsship/feeds.conf
+
+exec:~/.newsship/newsship tech-news "tech" "~AI: Tech News"
+exec:~/.newsship/newsship security-news "security" "~AI: Security"
+exec:~/.newsship/newsship ai-research "ai" "~AI: Research"
+
+# ============================================
+# How Day-Based Caching Works
+# ============================================
+# Newsship automatically caches AI articles for the entire calendar day (UTC)
+#
+# Example timeline:
+# - Monday 8am: Open newsboat → AI generates articles (5 API calls for 5 feeds)
+# - Monday 2pm: Reopen newsboat → Uses cache (0 API calls)
+# - Monday 11pm: Reopen newsboat → Still Monday, uses cache (0 API calls)
+# - Tuesday 7am: Open newsboat → New day, AI generates fresh articles (5 API calls)
+#
+# Cost Management:
+# 1. Ensure auto-reload is disabled in ~/.newsboat/config
+# 2. Articles automatically regenerate once per day when you open newsboat
+# 3. No need to configure refresh intervals in feeds.conf
+# 4. Use --force-refresh only when you need fresh articles during the same day
