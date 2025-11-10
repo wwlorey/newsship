@@ -1,31 +1,41 @@
 # Natty Lang Feeder
 
-AI-generated RSS feeds for newsboat. Turn any natural language query into an RSS feed.
+Turn any natural language query into an RSS feed using AI.
 
-## Overview
+## What is Natty Lang Feeder?
 
-Natty Lang Feeder is a standalone tool that integrates with [newsboat](https://newsboat.org/) to provide AI-generated RSS feeds. Simply describe what news you want, and natty-lang-feeder will use AI to find and summarize relevant articles.
+Instead of hunting for the perfect RSS feed, just describe what you want in plain English. Natty Lang Feeder uses AI (OpenAI or Anthropic) to find relevant articles and generate a custom RSS feed for you.
 
-### How Natty Lang Feeder and Newsboat Work Together
+**Example:** "Find recent AI breakthroughs and emerging technology" → Get a daily RSS feed with exactly that content.
 
-**Newsboat** is a terminal-based RSS/Atom feed reader. It reads RSS feeds from URLs you configure.
+## Using with Newsboat
 
-**Natty Lang Feeder** is a separate program that generates AI-powered RSS feeds on demand. It acts as a "smart RSS feed generator."
+Natty Lang Feeder works seamlessly with [newsboat](https://newsboat.org/), a popular terminal RSS reader.
 
-**The Integration:**
-1. You configure newsboat to run natty-lang-feeder using the `exec:` URL scheme
-2. When newsboat needs to fetch a feed, it executes natty-lang-feeder with your feed name
-3. Natty Lang Feeder calls an AI API (OpenAI or Anthropic) with your natural language prompt
-4. The AI finds relevant articles and natty-lang-feeder formats them as RSS XML
-5. Newsboat receives the RSS and displays articles just like any other feed
+**Quick Setup:**
 
-**Example:** Instead of subscribing to `https://hnrss.org/frontpage`, you can use `exec:~/.natty-lang-feeder/natty-lang-feeder tech-news` where natty-lang-feeder generates articles based on your custom prompt like "Find recent AI breakthroughs and emerging technology."
+1. Install natty-lang-feeder and set your API key
+2. Create a feed configuration describing what news you want
+3. Add it to newsboat using `exec:` URLs
+4. Use newsboat normally - your AI feeds appear alongside regular RSS feeds
 
-**Key Benefits:**
+**In your `~/.newsboat/urls` file:**
+```
+# Traditional RSS feeds
+https://news.ycombinator.com/rss
+
+# AI-generated feeds
+exec:~/.natty-lang-feeder/natty-lang-feeder tech-news
+exec:~/.natty-lang-feeder/natty-lang-feeder security-news
+```
+
+That's it. When newsboat loads, it runs natty-lang-feeder, which generates your custom RSS feed on demand. Articles are cached daily to minimize API costs.
+
+**Benefits:**
 - No need to find and subscribe to dozens of RSS feeds
 - Get personalized news curated by AI
-- Articles are cached to minimize API costs (regenerate once per day)
-- Works with your existing newsboat installation (no modifications needed)
+- Works with your existing newsboat installation
+- Smart caching minimizes costs (~$2-10/month)
 
 ## Features
 
