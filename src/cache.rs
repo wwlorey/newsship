@@ -1,5 +1,5 @@
 use crate::config::{Config, FeedConfig};
-use crate::error::{NewsshipError, Result};
+use crate::error::{NattyLangFeederError, Result};
 use chrono::{DateTime, Utc};
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,7 @@ fn ensure_cache_dir(config: &Config) -> Result<()> {
     if !config.cache_dir.exists() {
         debug!("Creating cache directory: {}", config.cache_dir.display());
         fs::create_dir_all(&config.cache_dir).map_err(|e| {
-            NewsshipError::CacheError(format!("Failed to create cache directory: {}", e))
+            NattyLangFeederError::CacheError(format!("Failed to create cache directory: {}", e))
         })?;
     }
     Ok(())
@@ -45,12 +45,12 @@ pub fn get_cached_feed(feed_name: &str, config: &Config) -> Result<Option<String
 
     // Read and parse metadata
     let meta_content = fs::read_to_string(&meta_path).map_err(|e| {
-        NewsshipError::CacheError(format!("Failed to read cache metadata: {}", e))
+        NattyLangFeederError::CacheError(format!("Failed to read cache metadata: {}", e))
     })?;
 
     let meta: CacheMeta = serde_json::from_str(&meta_content).map_err(|e| {
         warn!("Failed to parse cache metadata, ignoring cache: {}", e);
-        return NewsshipError::CacheError(format!("Invalid cache metadata: {}", e));
+        return NattyLangFeederError::CacheError(format!("Invalid cache metadata: {}", e));
     })?;
 
     // Check if cache is expired based on calendar day
@@ -69,7 +69,7 @@ pub fn get_cached_feed(feed_name: &str, config: &Config) -> Result<Option<String
 
     // Read cached RSS
     let rss_content = fs::read_to_string(&xml_path).map_err(|e| {
-        NewsshipError::CacheError(format!("Failed to read cached RSS: {}", e))
+        NattyLangFeederError::CacheError(format!("Failed to read cached RSS: {}", e))
     })?;
 
     info!(
@@ -114,13 +114,13 @@ pub fn write_cache(
 
     // Write RSS XML
     fs::write(&xml_path, rss_xml).map_err(|e| {
-        NewsshipError::CacheError(format!("Failed to write RSS cache: {}", e))
+        NattyLangFeederError::CacheError(format!("Failed to write RSS cache: {}", e))
     })?;
 
     // Write metadata
     let meta_json = serde_json::to_string_pretty(&meta)?;
     fs::write(&meta_path, meta_json).map_err(|e| {
-        NewsshipError::CacheError(format!("Failed to write cache metadata: {}", e))
+        NattyLangFeederError::CacheError(format!("Failed to write cache metadata: {}", e))
     })?;
 
     info!(
@@ -140,7 +140,7 @@ mod tests {
     fn create_test_config() -> Config {
         Config {
             default_provider: Provider::OpenAI,
-            cache_dir: std::env::temp_dir().join("newsship_test_cache"),
+            cache_dir: std::env::temp_dir().join("natty_lang_feeder_test_cache"),
             log_level: "info".to_string(),
             global_prompt: None,
             feeds: HashMap::new(),

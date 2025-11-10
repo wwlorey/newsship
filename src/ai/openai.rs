@@ -1,6 +1,6 @@
 use super::{AIProvider, Article, Source};
 use crate::config::FeedConfig;
-use crate::error::{NewsshipError, Result};
+use crate::error::{NattyLangFeederError, Result};
 use async_trait::async_trait;
 use chrono::Utc;
 use log::{debug, info, warn};
@@ -126,13 +126,13 @@ Return ONLY the JSON array, nothing else."#,
             let error_text = response.text().await?;
 
             if status.as_u16() == 429 {
-                return Err(NewsshipError::RateLimited(60));
+                return Err(NattyLangFeederError::RateLimited(60));
             } else if status.as_u16() == 401 {
-                return Err(NewsshipError::AuthenticationFailed(
+                return Err(NattyLangFeederError::AuthenticationFailed(
                     "Invalid OpenAI API key".to_string(),
                 ));
             } else {
-                return Err(NewsshipError::ProviderError(format!(
+                return Err(NattyLangFeederError::ProviderError(format!(
                     "OpenAI API error {}: {}",
                     status, error_text
                 )));
@@ -142,7 +142,7 @@ Return ONLY the JSON array, nothing else."#,
         let openai_response: OpenAIResponse = response.json().await?;
 
         if openai_response.choices.is_empty() {
-            return Err(NewsshipError::InvalidResponse(
+            return Err(NattyLangFeederError::InvalidResponse(
                 "No choices in OpenAI response".to_string(),
             ));
         }
@@ -167,7 +167,7 @@ Return ONLY the JSON array, nothing else."#,
         let articles_data: Vec<ArticleData> = serde_json::from_str(json_str).map_err(|e| {
             warn!("Failed to parse OpenAI response as JSON: {}", e);
             warn!("Response content: {}", content);
-            NewsshipError::InvalidResponse(format!("Failed to parse article JSON: {}", e))
+            NattyLangFeederError::InvalidResponse(format!("Failed to parse article JSON: {}", e))
         })?;
 
         let now = Utc::now();
@@ -197,7 +197,7 @@ Return ONLY the JSON array, nothing else."#,
         for attempt in 0..max_retries {
             match self.call_api(prompt).await {
                 Ok(content) => return Ok(content),
-                Err(NewsshipError::RateLimited(retry_after)) => {
+                Err(NattyLangFeederError::RateLimited(retry_after)) => {
                     if attempt < max_retries - 1 {
                         warn!(
                             "Rate limited, waiting {} seconds before retry",
@@ -205,7 +205,7 @@ Return ONLY the JSON array, nothing else."#,
                         );
                         tokio::time::sleep(Duration::from_secs(retry_after)).await;
                     } else {
-                        return Err(NewsshipError::RateLimited(retry_after));
+                        return Err(NattyLangFeederError::RateLimited(retry_after));
                     }
                 }
                 Err(e) => {
@@ -220,7 +220,7 @@ Return ONLY the JSON array, nothing else."#,
             }
         }
 
-        Err(NewsshipError::ProviderError(
+        Err(NattyLangFeederError::ProviderError(
             "Max retries exceeded".to_string(),
         ))
     }

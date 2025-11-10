@@ -1,4 +1,4 @@
-# Newsship Architecture & Implementation Plan
+# Natty Lang Feeder Architecture & Implementation Plan
 
 **Version:** 1.0
 **Date:** 2025-11-08
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Newsship is a standalone tool that adds AI-generated RSS feeds to newsboat, configured via natural language prompts. Users continue using their existing newsboat installation, and AI feeds appear alongside traditional RSS feeds with zero additional configuration beyond setting API keys via environment variables.
+Natty Lang Feeder is a standalone tool that adds AI-generated RSS feeds to newsboat, configured via natural language prompts. Users continue using their existing newsboat installation, and AI feeds appear alongside traditional RSS feeds with zero additional configuration beyond setting API keys via environment variables.
 
 **Implementation Strategy:** Tier 1 External Script Integration
 - Uses newsboat's existing `exec:` URL mechanism
@@ -24,21 +24,21 @@ Newsship is a standalone tool that adds AI-generated RSS feeds to newsboat, conf
 ### 1.1 First-Time User Journey
 
 **Installation**
-1. User installs newsship binary (standalone tool)
+1. User installs natty-lang-feeder binary (standalone tool)
 2. User sets API key as environment variable:
    ```bash
    export OPENAI_API_KEY="sk-..."
    # or in ~/.bashrc, ~/.zshrc, etc.
    ```
-3. That's it - newsship works with zero config files needed
+3. That's it - natty-lang-feeder works with zero config files needed
 
 **First AI Feed Setup**
 1. User edits `~/.newsboat/urls` and adds:
    ```
-   exec:~/.newsship/newsship tech-news
+   exec:~/.natty-lang-feeder/natty-lang-feeder tech-news
    ```
 
-2. User creates `~/.newsship/feeds.conf` (auto-created with defaults if missing):
+2. User creates `~/.natty-lang-feeder/feeds.conf` (auto-created with defaults if missing):
    ```
    feed tech-news
      prompt "Find 10 recent articles about AI breakthroughs and emerging technology"
@@ -53,7 +53,7 @@ Newsship is a standalone tool that adds AI-generated RSS feeds to newsboat, conf
 
 ### 1.2 Daily Usage Workflow
 
-**Opening newsship**
+**Opening natty-lang-feeder**
 ```
 $ newsboat
 ```
@@ -99,7 +99,7 @@ $ newsboat
 **Missing API Key**
 - Newsboat launches normally
 - AI feeds show error: `"Error: OPENAI_API_KEY not set"`
-- Error logged to `~/.newsship/error.log`
+- Error logged to `~/.natty-lang-feeder/error.log`
 - Traditional RSS feeds work normally
 - User can still browse cached AI articles from previous successful runs
 
@@ -113,7 +113,7 @@ $ newsboat
 **Garbage/Invalid Output**
 - If AI returns unparseable or poor content, display it as-is
 - User sees raw output and can adjust prompt
-- Error logged to `~/.newsship/error.log` for debugging
+- Error logged to `~/.natty-lang-feeder/error.log` for debugging
 
 **Network Failures**
 - Same behavior as traditional RSS feed network failures
@@ -169,11 +169,11 @@ feed quick-news
                         │ exec: trigger
                         ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                 ~/.newsship/newsship                        │
+│                 ~/.natty-lang-feeder/natty-lang-feeder                        │
 │                  (Rust binary)                               │
 │                                                              │
 │  1. Parse command-line args (feed name)                     │
-│  2. Read ~/.newsship/feeds.conf                             │
+│  2. Read ~/.natty-lang-feeder/feeds.conf                             │
 │  3. Load feed configuration                                 │
 │  4. Check cache (if not expired, return cached XML)         │
 │  5. Call AI API (OpenAI/Claude)                             │
@@ -205,8 +205,8 @@ feed quick-news
 - **Configuration:** `~/.newsboat/urls`
 - **Entry Format:**
   ```
-  exec:~/.newsship/newsship tech-news
-  exec:~/.newsship/newsship security-news
+  exec:~/.natty-lang-feeder/natty-lang-feeder tech-news
+  exec:~/.natty-lang-feeder/natty-lang-feeder security-news
   ```
 - **Behavior:**
   - Newsboat executes the script during reload cycle
@@ -217,8 +217,8 @@ feed quick-news
 
 #### 2.2.2 Feed Generator Binary
 
-**Name:** `newsship` (Rust binary)
-**Location:** `~/.newsship/newsship`
+**Name:** `natty-lang-feeder` (Rust binary)
+**Location:** `~/.natty-lang-feeder/natty-lang-feeder`
 **Language:** Rust
 **Dependencies:**
 - `reqwest` - HTTP client with async support
@@ -230,13 +230,13 @@ feed quick-news
 
 **Command-Line Interface:**
 ```bash
-~/.newsship/newsship <feed-name> [options]
+~/.natty-lang-feeder/natty-lang-feeder <feed-name> [options]
 
 Arguments:
   <feed-name>           Feed identifier from feeds.conf
 
 Options:
-  --config <path>       Config file path (default: ~/.newsship/feeds.conf)
+  --config <path>       Config file path (default: ~/.natty-lang-feeder/feeds.conf)
   --force-refresh       Ignore cache, regenerate feed
   --debug               Enable debug logging
   --help                Show help
@@ -278,13 +278,13 @@ fn main() {
 
 #### 2.2.3 Configuration File Format
 
-**Location:** `~/.newsship/feeds.conf`
+**Location:** `~/.natty-lang-feeder/feeds.conf`
 **Format:** Custom INI-like format with sections
 
 ```conf
 # Global settings (optional - all have defaults)
 default-provider openai          # openai | anthropic
-cache-dir ~/.newsship/cache
+cache-dir ~/.natty-lang-feeder/cache
 log-level info                   # error | warn | info | debug
 
 # Global prompt prefix (applied to all feeds)
@@ -492,17 +492,17 @@ impl AIProvider {
 <rss version="2.0">
   <channel>
     <title>Tech News</title>
-    <link>https://newsship.local/tech-news</link>
+    <link>https://natty-lang-feeder.local/tech-news</link>
     <description>AI-generated feed: Recent AI breakthroughs</description>
     <language>en-us</language>
     <lastBuildDate>Fri, 08 Nov 2025 12:00:00 GMT</lastBuildDate>
     <ttl>60</ttl>
-    <generator>newsship/0.1.0</generator>
+    <generator>natty-lang-feeder/0.1.0</generator>
 
     <item>
       <title>New Breakthrough in Quantum Computing Achieves Error Correction</title>
       <link>https://www.nature.com/articles/quantum-breakthrough-2025</link>
-      <guid isPermaLink="false">tag:newsship.local,2025:tech-news-a3f8b91c</guid>
+      <guid isPermaLink="false">tag:natty-lang-feeder.local,2025:tech-news-a3f8b91c</guid>
       <pubDate>Thu, 07 Nov 2025 15:30:00 GMT</pubDate>
       <description><![CDATA[
         <p>Researchers at Google Quantum AI have demonstrated a major advancement
@@ -537,7 +537,7 @@ fn generate_guid(title: &str, summary: &str) -> String {
 
     // TAG URI scheme: tag:domain,date:specific-id
     format!(
-        "tag:newsship.local,2025:{}",
+        "tag:natty-lang-feeder.local,2025:{}",
         hex::encode(&hash[..8]) // First 16 hex chars
     )
 }
@@ -552,10 +552,10 @@ fn generate_guid(title: &str, summary: &str) -> String {
 
 #### 2.2.6 Caching System
 
-**Cache Location:** `~/.newsship/cache/`
+**Cache Location:** `~/.natty-lang-feeder/cache/`
 **Cache Structure:**
 ```
-~/.newsship/cache/
+~/.natty-lang-feeder/cache/
   tech-news.xml           # Cached RSS XML
   tech-news.meta          # Metadata (timestamp, TTL)
   security-news.xml
@@ -633,7 +633,7 @@ fn write_cache(feed: &FeedConfig, xml: &str) -> Result<()> {
 - [ ] Manual testing with newsboat
 
 **Success Criteria:**
-- `exec:~/.newsship/newsship tech-news` produces valid RSS XML
+- `exec:~/.natty-lang-feeder/natty-lang-feeder tech-news` produces valid RSS XML
 - Newsboat parses and displays AI-generated articles
 - Articles include summaries and source links
 
@@ -747,9 +747,9 @@ fn write_cache(feed: &FeedConfig, xml: &str) -> Result<()> {
 - `ANTHROPIC_API_KEY` - Anthropic API key (fallback)
 
 **Optional:**
-- `NEWSSHIP_CONFIG` - Custom config file path (default: `~/.newsship/feeds.conf`)
-- `NEWSSHIP_CACHE_DIR` - Custom cache directory (default: `~/.newsship/cache`)
-- `NEWSSHIP_LOG_LEVEL` - Logging verbosity: `error|warn|info|debug` (default: `info`)
+- `NATTY_LANG_FEEDER_CONFIG` - Custom config file path (default: `~/.natty-lang-feeder/feeds.conf`)
+- `NATTY_LANG_FEEDER_CACHE_DIR` - Custom cache directory (default: `~/.natty-lang-feeder/cache`)
+- `NATTY_LANG_FEEDER_LOG_LEVEL` - Logging verbosity: `error|warn|info|debug` (default: `info`)
 
 ### 4.2 Newsboat URLs File
 
@@ -762,19 +762,19 @@ https://news.ycombinator.com/rss
 https://arstechnica.com/feed/
 
 # AI-generated feeds
-exec:~/.newsship/newsship tech-news
-exec:~/.newsship/newsship security-news
-exec:~/.newsship/newsship rust-weekly
+exec:~/.natty-lang-feeder/natty-lang-feeder tech-news
+exec:~/.natty-lang-feeder/natty-lang-feeder security-news
+exec:~/.natty-lang-feeder/natty-lang-feeder rust-weekly
 ```
 
 **Optional tags:**
 ```
-exec:~/.newsship/newsship tech-news "Tech News" ai tech
+exec:~/.natty-lang-feeder/natty-lang-feeder tech-news "Tech News" ai tech
 ```
 
 ### 4.3 Feed Configuration File
 
-**Location:** `~/.newsship/feeds.conf`
+**Location:** `~/.natty-lang-feeder/feeds.conf`
 
 **Sections:**
 1. **Global settings** (optional)
@@ -787,7 +787,7 @@ exec:~/.newsship/newsship tech-news "Tech News" ai tech
 # ============================================
 
 default-provider openai
-cache-dir ~/.newsship/cache
+cache-dir ~/.natty-lang-feeder/cache
 log-level info
 
 # Applied to all prompts as a prefix
@@ -944,7 +944,7 @@ feed academic-ai
 
 **Key decisions made during planning:**
 
-1. **Binary name:** `newsship` - simple, memorable, matches project name
+1. **Binary name:** `natty-lang-feeder` - simple, memorable, matches project name
 
 2. **Primary provider:** OpenAI (with Anthropic as fallback)
    - Default model: GPT-4o for quality, GPT-4o-mini for cost savings
@@ -960,7 +960,7 @@ feed academic-ai
    - No built-in template library (keeps it simple)
    - Sample prompts provided in example config file
 
-6. **Error handling:** Errors logged to `~/.newsship/error.log` only
+6. **Error handling:** Errors logged to `~/.natty-lang-feeder/error.log` only
    - Clean stdout for RSS output
    - Users can tail log file for debugging
 
@@ -1037,13 +1037,13 @@ export OPENAI_API_KEY="sk-..."
 **Solution:**
 ```bash
 # Force refresh (bypass cache)
-~/.newsship/newsship tech-news --force-refresh
+~/.natty-lang-feeder/natty-lang-feeder tech-news --force-refresh
 
 # Check logs
-tail -f ~/.newsship/error.log
+tail -f ~/.natty-lang-feeder/error.log
 
 # Verify cache status
-ls -lh ~/.newsship/cache/
+ls -lh ~/.natty-lang-feeder/cache/
 ```
 
 ### Problem: AI returns poor quality summaries

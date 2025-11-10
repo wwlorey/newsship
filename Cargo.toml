@@ -1,11 +1,11 @@
 [package]
-name = "newsship"
+name = "natty-lang-feeder"
 version = "0.1.0"
 edition = "2021"
-authors = ["newsship contributors"]
+authors = ["natty-lang-feeder contributors"]
 description = "AI-generated RSS feeds for newsboat"
 license = "MIT"
-repository = "https://github.com/wwlorey/newsship"
+repository = "https://github.com/wwlorey/natty-lang-feeder"
 
 [dependencies]
 # Async runtime

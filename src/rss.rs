@@ -17,7 +17,7 @@ pub fn generate_guid(title: &str, summary: &str) -> String {
     let hash = hasher.finalize();
 
     // Use TAG URI scheme as specified in architecture
-    format!("tag:newsship.local,2025:{}", hex::encode(&hash[..8]))
+    format!("tag:natty-lang-feeder.local,2025:{}", hex::encode(&hash[..8]))
 }
 
 /// Format a DateTime for RSS pubDate (RFC 822 format)
@@ -48,7 +48,7 @@ pub fn build_rss(feed_name: &str, articles: &[Article]) -> Result<String> {
     // Channel metadata
     rss.push_str(&format!("    <title>{}</title>\n", escape_html(feed_name)));
     rss.push_str(&format!(
-        "    <link>https://newsship.local/{}</link>\n",
+        "    <link>https://natty-lang-feeder.local/{}</link>\n",
         feed_name
     ));
     rss.push_str(&format!(
@@ -58,7 +58,7 @@ pub fn build_rss(feed_name: &str, articles: &[Article]) -> Result<String> {
     rss.push_str("    <language>en-us</language>\n");
     rss.push_str(&format!("    <lastBuildDate>{}</lastBuildDate>\n", build_date));
     rss.push_str("    <ttl>60</ttl>\n");
-    rss.push_str("    <generator>newsship/0.1.0</generator>\n");
+    rss.push_str("    <generator>natty-lang-feeder/0.1.0</generator>\n");
 
     // Add articles
     for article in articles {
@@ -124,7 +124,7 @@ mod tests {
         assert_ne!(guid1, guid3);
 
         // Should follow TAG URI format
-        assert!(guid1.starts_with("tag:newsship.local,2025:"));
+        assert!(guid1.starts_with("tag:natty-lang-feeder.local,2025:"));
     }
 
     #[test]

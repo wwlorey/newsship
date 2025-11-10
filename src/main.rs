@@ -48,7 +48,7 @@ async fn run() -> Result<()> {
     let log_level = if args.debug {
         "debug".to_string()
     } else {
-        std::env::var("NEWSSHIP_LOG_LEVEL").unwrap_or_else(|_| "info".to_string())
+        std::env::var("NATTY_LANG_FEEDER_LOG_LEVEL").unwrap_or_else(|_| "info".to_string())
     };
 
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or(&log_level))
@@ -61,7 +61,7 @@ async fn run() -> Result<()> {
     let config_path = args.config.unwrap_or_else(|| {
         dirs::home_dir()
             .expect("Could not determine home directory")
-            .join(".newsship")
+            .join(".natty-lang-feeder")
             .join("feeds.conf")
     });
 

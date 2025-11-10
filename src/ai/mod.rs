@@ -2,7 +2,7 @@ pub mod openai;
 pub mod claude;
 
 use crate::config::{Config, FeedConfig, Provider};
-use crate::error::{NewsshipError, Result};
+use crate::error::{NattyLangFeederError, Result};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -37,7 +37,7 @@ pub fn create_provider(feed_config: &FeedConfig, config: &Config) -> Result<Box<
     match provider {
         Provider::OpenAI => {
             let api_key = std::env::var("OPENAI_API_KEY")
-                .map_err(|_| NewsshipError::ApiKeyMissing("OPENAI_API_KEY".to_string()))?;
+                .map_err(|_| NattyLangFeederError::ApiKeyMissing("OPENAI_API_KEY".to_string()))?;
 
             Ok(Box::new(openai::OpenAIProvider::new(
                 api_key,
@@ -49,7 +49,7 @@ pub fn create_provider(feed_config: &FeedConfig, config: &Config) -> Result<Box<
         }
         Provider::Claude => {
             let api_key = std::env::var("ANTHROPIC_API_KEY")
-                .map_err(|_| NewsshipError::ApiKeyMissing("ANTHROPIC_API_KEY".to_string()))?;
+                .map_err(|_| NattyLangFeederError::ApiKeyMissing("ANTHROPIC_API_KEY".to_string()))?;
 
             Ok(Box::new(claude::ClaudeProvider::new(
                 api_key,
