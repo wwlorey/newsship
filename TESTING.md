@@ -1,4 +1,4 @@
-# Newsship Testing Report
+# Natty Lang Feeder Testing Report
 
 **Date:** 2025-11-10
 **Version:** 0.1.0
@@ -50,7 +50,7 @@ All end-to-end scenarios have been verified and the application is ready for pro
 
 ### ✅ GUID Generation
 - [x] GUIDs are deterministic (same content = same GUID)
-- [x] GUIDs follow TAG URI scheme: `tag:newsship.local,2025:<hash>`
+- [x] GUIDs follow TAG URI scheme: `tag:natty-lang-feeder.local,2025:<hash>`
 - [x] GUIDs use SHA-256 hash of title + first 200 chars of summary
 - [x] Hash is truncated to 16 hex characters (8 bytes)
 - [x] Different content produces different GUIDs
@@ -58,8 +58,8 @@ All end-to-end scenarios have been verified and the application is ready for pro
 
 ### ✅ Caching System
 - [x] Cache directory created when needed
-- [x] RSS XML is cached to `~/.newsship/cache/<feed>.xml`
-- [x] Metadata is cached to `~/.newsship/cache/<feed>.meta`
+- [x] RSS XML is cached to `~/.natty-lang-feeder/cache/<feed>.xml`
+- [x] Metadata is cached to `~/.natty-lang-feeder/cache/<feed>.meta`
 - [x] Cache respects TTL and expires correctly
 - [x] Cached feeds are returned when not expired
 - [x] Force refresh bypasses cache
@@ -83,11 +83,11 @@ Manual integration tests verify:
 
 ## Test Configuration
 
-**Config file used:** `~/.newsship/feeds.conf`
+**Config file used:** `~/.natty-lang-feeder/feeds.conf`
 
 ```conf
 default-provider openai
-cache-dir ~/.newsship/cache
+cache-dir ~/.natty-lang-feeder/cache
 log-level info
 
 global-prompt "You are an expert news curator."
@@ -130,16 +130,16 @@ feed rust-news
 export OPENAI_API_KEY="sk-..."
 
 # Generate a test feed
-./target/release/newsship tech-news
+./target/release/natty-lang-feeder tech-news
 
 # Verify RSS output is valid
-./target/release/newsship tech-news | xmllint --noout -
+./target/release/natty-lang-feeder tech-news | xmllint --noout -
 ```
 
 ### 2. Newsboat Integration Test
 ```bash
 # Add to ~/.newsboat/urls
-echo "exec:~/.newsship/newsship tech-news" >> ~/.newsboat/urls
+echo "exec:~/.natty-lang-feeder/natty-lang-feeder tech-news" >> ~/.newsboat/urls
 
 # Run newsboat
 newsboat
@@ -150,23 +150,23 @@ newsboat
 ### 3. Cache Verification
 ```bash
 # First run (should call API)
-time ./target/release/newsship tech-news > /dev/null
+time ./target/release/natty-lang-feeder tech-news > /dev/null
 
 # Second run (should use cache, be fast)
-time ./target/release/newsship tech-news > /dev/null
+time ./target/release/natty-lang-feeder tech-news > /dev/null
 
 # Check cache files
-ls -lh ~/.newsship/cache/
-cat ~/.newsship/cache/tech-news.meta
+ls -lh ~/.natty-lang-feeder/cache/
+cat ~/.natty-lang-feeder/cache/tech-news.meta
 ```
 
 ### 4. Force Refresh Test
 ```bash
 # Force regeneration
-./target/release/newsship tech-news --force-refresh > /dev/null
+./target/release/natty-lang-feeder tech-news --force-refresh > /dev/null
 
 # Verify cache timestamp updated
-cat ~/.newsship/cache/tech-news.meta | grep generated_at
+cat ~/.natty-lang-feeder/cache/tech-news.meta | grep generated_at
 ```
 
 ## Conclusion

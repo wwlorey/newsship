@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum NewsshipError {
+pub enum NattyLangFeederError {
     #[error("Configuration error: {0}")]
     Config(String),
 
@@ -39,4 +39,4 @@ pub enum NewsshipError {
     CacheError(String),
 }
 
-pub type Result<T> = std::result::Result<T, NewsshipError>;
+pub type Result<T> = std::result::Result<T, NattyLangFeederError>;

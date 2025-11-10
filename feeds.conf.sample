@@ -1,14 +1,14 @@
 # ============================================================================
-# Newsship Sample Configuration File
+# Natty Lang Feeder Sample Configuration File
 # ============================================================================
-# This is a sample configuration file for newsship. Copy this file to
-# ~/.newsship/feeds.conf and customize it for your needs.
+# This is a sample configuration file for natty-lang-feeder. Copy this file to
+# ~/.natty-lang-feeder/feeds.conf and customize it for your needs.
 #
 # Quick Setup:
-#   1. Copy this file:  cp feeds.conf.sample ~/.newsship/feeds.conf
+#   1. Copy this file:  cp feeds.conf.sample ~/.natty-lang-feeder/feeds.conf
 #   2. Set your API key: export OPENAI_API_KEY="sk-..."
 #   3. Edit feeds below to match your interests
-#   4. Add to newsboat: echo "exec:~/.newsship/newsship tech-news" >> ~/.newsboat/urls
+#   4. Add to newsboat: echo "exec:~/.natty-lang-feeder/natty-lang-feeder tech-news" >> ~/.newsboat/urls
 #   5. Run newsboat and press 'r' to reload
 # ============================================================================
 
@@ -19,13 +19,13 @@
 # These settings apply to all feeds unless overridden at the feed level.
 
 # Default AI provider to use (openai or claude)
-# If not specified, newsship will use whichever API key is available
+# If not specified, natty-lang-feeder will use whichever API key is available
 default-provider openai
 
 # Cache directory for storing generated feeds
-# Default: ~/.newsship/cache
+# Default: ~/.natty-lang-feeder/cache
 # Tip: Keep cache enabled to minimize API costs
-cache-dir ~/.newsship/cache
+cache-dir ~/.natty-lang-feeder/cache
 
 # Logging level: error, warn, info, or debug
 # Default: info
@@ -221,9 +221,9 @@ feed tech-news-es
 #
 # 7. TESTING YOUR FEEDS
 #    Test a feed directly from command line:
-#      newsship tech-news --debug
+#      natty-lang-feeder tech-news --debug
 #    Force refresh to ignore cache:
-#      newsship tech-news --force-refresh
+#      natty-lang-feeder tech-news --force-refresh
 #
 # ============================================================================
 

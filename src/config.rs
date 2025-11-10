@@ -1,4 +1,4 @@
-use crate::error::{NewsshipError, Result};
+use crate::error::{NattyLangFeederError, Result};
 use log::{debug, warn};
 use std::collections::HashMap;
 use std::fs;
@@ -15,7 +15,7 @@ impl Provider {
         match s.to_lowercase().as_str() {
             "openai" => Ok(Provider::OpenAI),
             "anthropic" => Ok(Provider::Claude),
-            _ => Err(NewsshipError::Config(format!("Unknown provider: {}", s))),
+            _ => Err(NattyLangFeederError::Config(format!("Unknown provider: {}", s))),
         }
     }
 
@@ -50,14 +50,14 @@ pub struct FeedConfig {
 impl Config {
     pub fn load(path: &Path) -> Result<Self> {
         if !path.exists() {
-            return Err(NewsshipError::Config(format!(
+            return Err(NattyLangFeederError::Config(format!(
                 "Configuration file not found: {}",
                 path.display()
             )));
         }
 
         let content = fs::read_to_string(path).map_err(|e| {
-            NewsshipError::Config(format!("Failed to read config file: {}", e))
+            NattyLangFeederError::Config(format!("Failed to read config file: {}", e))
         })?;
 
         Self::parse(&content)
@@ -67,7 +67,7 @@ impl Config {
         let mut default_provider = Self::detect_default_provider();
         let mut cache_dir = dirs::home_dir()
             .expect("Could not determine home directory")
-            .join(".newsship")
+            .join(".natty-lang-feeder")
             .join("cache");
         let mut log_level = "info".to_string();
         let mut global_prompt = None;
@@ -120,7 +120,7 @@ impl Config {
                             "model" => feed.model = Some(value.to_string()),
                             "refresh" => {
                                 feed.refresh = Some(value.parse().map_err(|_| {
-                                    NewsshipError::Config(format!(
+                                    NattyLangFeederError::Config(format!(
                                         "Invalid refresh value: {}",
                                         value
                                     ))
@@ -128,7 +128,7 @@ impl Config {
                             }
                             "max-articles" => {
                                 feed.max_articles = Some(value.parse().map_err(|_| {
-                                    NewsshipError::Config(format!(
+                                    NattyLangFeederError::Config(format!(
                                         "Invalid max-articles value: {}",
                                         value
                                     ))
@@ -136,7 +136,7 @@ impl Config {
                             }
                             "temperature" => {
                                 feed.temperature = Some(value.parse().map_err(|_| {
-                                    NewsshipError::Config(format!(
+                                    NattyLangFeederError::Config(format!(
                                         "Invalid temperature value: {}",
                                         value
                                     ))
@@ -195,7 +195,7 @@ impl Config {
         self.feeds
             .get(name)
             .cloned()
-            .ok_or_else(|| NewsshipError::FeedNotFound(name.to_string()))
+            .ok_or_else(|| NattyLangFeederError::FeedNotFound(name.to_string()))
     }
 
     fn detect_default_provider() -> Provider {
@@ -249,7 +249,7 @@ mod tests {
         let config_str = r#"
 # Global settings
 default-provider openai
-cache-dir ~/.newsship/cache
+cache-dir ~/.natty-lang-feeder/cache
 log-level info
 
 feed tech-news

@@ -68,7 +68,7 @@ if [ -f /tmp/test_rss ]; then
     /tmp/test_rss | grep -c "<rss version=\"2.0\">" && echo "✓ RSS tag found"
     /tmp/test_rss | grep -c "<item>" && echo "✓ Items found"
     /tmp/test_rss | grep -c "<guid" && echo "✓ GUIDs found"
-    /tmp/test_rss | grep -c "tag:newsship.local" && echo "✓ TAG URI format correct"
+    /tmp/test_rss | grep -c "tag:natty-lang-feeder.local" && echo "✓ TAG URI format correct"
 else
     echo "Failed to build test program, skipping..."
 fi

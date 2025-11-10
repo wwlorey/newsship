@@ -1,4 +1,4 @@
-# Newsboat URLs Example for Newsship
+# Newsboat URLs Example for Natty Lang Feeder
 # Copy this to ~/.newsboat/urls
 
 # ============================================
@@ -10,19 +10,19 @@ https://lobste.rs/rss "tech" "~Lobsters"
 https://www.reddit.com/r/programming/.rss "tech" "~Reddit Programming"
 
 # ============================================
-# AI-Generated Feeds (via Newsship)
+# AI-Generated Feeds (via Natty Lang Feeder)
 # ============================================
-# Note: Update the path to your newsship binary
-# These will be cached based on your refresh settings in ~/.newsship/feeds.conf
+# Note: Update the path to your natty-lang-feeder binary
+# These will be cached based on your refresh settings in ~/.natty-lang-feeder/feeds.conf
 
-exec:~/.newsship/newsship tech-news "tech" "~AI: Tech News"
-exec:~/.newsship/newsship security-news "security" "~AI: Security"
-exec:~/.newsship/newsship ai-research "ai" "~AI: Research"
+exec:~/.natty-lang-feeder/natty-lang-feeder tech-news "tech" "~AI: Tech News"
+exec:~/.natty-lang-feeder/natty-lang-feeder security-news "security" "~AI: Security"
+exec:~/.natty-lang-feeder/natty-lang-feeder ai-research "ai" "~AI: Research"
 
 # ============================================
 # How Day-Based Caching Works
 # ============================================
-# Newsship automatically caches AI articles for the entire calendar day (UTC)
+# Natty Lang Feeder automatically caches AI articles for the entire calendar day (UTC)
 #
 # Example timeline:
 # - Monday 8am: Open newsboat → AI generates articles (5 API calls for 5 feeds)

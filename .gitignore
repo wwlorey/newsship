@@ -16,5 +16,5 @@ Cargo.lock
 Thumbs.db
 
 # Newsship
-.newsship/
+.natty-lang-feeder/
 error.log
