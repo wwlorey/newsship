@@ -32,9 +32,6 @@ pub enum NattyLangFeederError {
     #[error("JSON parse error: {0}")]
     JsonError(#[from] serde_json::Error),
 
-    #[error("XML generation error: {0}")]
-    XmlError(String),
-
     #[error("Cache error: {0}")]
     CacheError(String),
 }
