@@ -53,12 +53,16 @@ pub fn get_cached_feed(feed_name: &str, config: &Config) -> Result<Option<String
         return NewsshipError::CacheError(format!("Invalid cache metadata: {}", e));
     })?;
 
-    // Check if cache is expired
+    // Check if cache is expired based on calendar day
+    // Cache expires if it was generated on a different day (in UTC)
     let now = Utc::now();
-    if now > meta.expires_at {
+    let generated_date = meta.generated_at.date_naive();
+    let current_date = now.date_naive();
+
+    if generated_date != current_date {
         debug!(
-            "Cache expired for feed '{}' (expired at {})",
-            feed_name, meta.expires_at
+            "Cache expired for feed '{}' (generated on {}, today is {})",
+            feed_name, generated_date, current_date
         );
         return Ok(None);
     }
@@ -69,10 +73,10 @@ pub fn get_cached_feed(feed_name: &str, config: &Config) -> Result<Option<String
     })?;
 
     info!(
-        "Cache hit for feed '{}' ({} articles, expires in {} seconds)",
+        "Cache hit for feed '{}' ({} articles, generated today at {})",
         feed_name,
         meta.article_count,
-        (meta.expires_at - now).num_seconds()
+        meta.generated_at.format("%H:%M:%S UTC")
     );
 
     Ok(Some(rss_content))
@@ -120,8 +124,8 @@ pub fn write_cache(
     })?;
 
     info!(
-        "Cached feed '{}' ({} articles, expires at {})",
-        feed_name, article_count, expires_at
+        "Cached feed '{}' ({} articles, valid until end of day {})",
+        feed_name, article_count, now.format("%Y-%m-%d UTC")
     );
 
     Ok(())

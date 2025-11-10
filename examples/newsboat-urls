@@ -20,9 +20,18 @@ exec:~/.newsship/newsship security-news "security" "~AI: Security"
 exec:~/.newsship/newsship ai-research "ai" "~AI: Research"
 
 # ============================================
-# Cost Management Tips
+# How Day-Based Caching Works
 # ============================================
-# 1. Set long cache TTLs in ~/.newsship/feeds.conf (e.g., refresh 86400 for 24 hours)
-# 2. Disable auto-reload in ~/.newsboat/config (auto-reload no)
-# 3. Only press 'r' to reload when you actually want fresh content
-# 4. AI feeds will use cached results until the cache expires
+# Newsship automatically caches AI articles for the entire calendar day (UTC)
+#
+# Example timeline:
+# - Monday 8am: Open newsboat → AI generates articles (5 API calls for 5 feeds)
+# - Monday 2pm: Reopen newsboat → Uses cache (0 API calls)
+# - Monday 11pm: Reopen newsboat → Still Monday, uses cache (0 API calls)
+# - Tuesday 7am: Open newsboat → New day, AI generates fresh articles (5 API calls)
+#
+# Cost Management:
+# 1. Ensure auto-reload is disabled in ~/.newsboat/config
+# 2. Articles automatically regenerate once per day when you open newsboat
+# 3. No need to configure refresh intervals in feeds.conf
+# 4. Use --force-refresh only when you need fresh articles during the same day

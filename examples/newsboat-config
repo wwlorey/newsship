@@ -5,9 +5,14 @@
 # Cost-Optimized Settings for AI Feeds
 # ============================================
 
-# Only reload feeds when newsboat starts, not automatically throughout the day
-# This prevents unnecessary AI API calls
+# CRITICAL: Only reload feeds when newsboat starts, not automatically
+# This is essential for day-based caching to work properly
+# Without this, newsboat may reload feeds multiple times per day
 auto-reload no
+
+# Alternative: Set a very long auto-reload interval (in minutes)
+# auto-reload yes
+# reload-time 1440  # 24 hours (not recommended - use auto-reload no instead)
 
 # Reload settings
 reload-only-visible-feeds no
