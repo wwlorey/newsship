@@ -76,22 +76,22 @@ impl Config {
         let mut current_feed: Option<(String, FeedConfig)> = None;
 
         for (line_num, line) in content.lines().enumerate() {
-            let line = line.trim();
+            let trimmed = line.trim();
 
             // Skip empty lines and comments
-            if line.is_empty() || line.starts_with('#') {
+            if trimmed.is_empty() || trimmed.starts_with('#') {
                 continue;
             }
 
             // Check if this is a feed definition
-            if line.starts_with("feed ") {
+            if trimmed.starts_with("feed ") {
                 // Save previous feed if exists
                 if let Some((name, feed)) = current_feed.take() {
                     feeds.insert(name, feed);
                 }
 
                 // Start new feed
-                let feed_name = line.strip_prefix("feed ").unwrap().trim().to_string();
+                let feed_name = trimmed.strip_prefix("feed ").unwrap().trim().to_string();
                 current_feed = Some((
                     feed_name.clone(),
                     FeedConfig {
@@ -110,8 +110,7 @@ impl Config {
             // Check if this is a feed property (indented)
             if line.starts_with("  ") || line.starts_with('\t') {
                 if let Some((_, ref mut feed)) = current_feed {
-                    let line = line.trim();
-                    if let Some((key, value)) = line.split_once(char::is_whitespace) {
+                    if let Some((key, value)) = trimmed.split_once(char::is_whitespace) {
                         let key = key.trim();
                         let value = value.trim().trim_matches('"');
 
@@ -153,7 +152,7 @@ impl Config {
             }
 
             // Global settings
-            if let Some((key, value)) = line.split_once(char::is_whitespace) {
+            if let Some((key, value)) = trimmed.split_once(char::is_whitespace) {
                 let key = key.trim();
                 let value = value.trim().trim_matches('"');
 
