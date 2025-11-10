@@ -25,7 +25,6 @@ pub struct Source {
 #[async_trait]
 pub trait AIProvider: Send + Sync {
     async fn generate_articles(&self, feed_config: &FeedConfig) -> Result<Vec<Article>>;
-    fn name(&self) -> &str;
 }
 
 pub fn create_provider(feed_config: &FeedConfig, config: &Config) -> Result<Box<dyn AIProvider>> {

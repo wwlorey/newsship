@@ -31,14 +31,12 @@ impl Provider {
 pub struct Config {
     pub default_provider: Provider,
     pub cache_dir: PathBuf,
-    pub log_level: String,
     pub global_prompt: Option<String>,
     pub feeds: HashMap<String, FeedConfig>,
 }
 
 #[derive(Debug, Clone)]
 pub struct FeedConfig {
-    pub name: String,
     pub prompt: String,
     pub provider: Option<Provider>,
     pub model: Option<String>,
@@ -69,7 +67,6 @@ impl Config {
             .expect("Could not determine home directory")
             .join(".natty-lang-feeder")
             .join("cache");
-        let mut log_level = "info".to_string();
         let mut global_prompt = None;
         let mut feeds = HashMap::new();
 
@@ -95,7 +92,6 @@ impl Config {
                 current_feed = Some((
                     feed_name.clone(),
                     FeedConfig {
-                        name: feed_name,
                         prompt: String::new(),
                         provider: None,
                         model: None,
@@ -164,9 +160,6 @@ impl Config {
                         cache_dir = PathBuf::from(value.replace("~/", &format!("{}/",
                             dirs::home_dir().unwrap().display())));
                     }
-                    "log-level" => {
-                        log_level = value.to_string();
-                    }
                     "global-prompt" => {
                         global_prompt = Some(value.to_string());
                     }
@@ -185,7 +178,6 @@ impl Config {
         Ok(Config {
             default_provider,
             cache_dir,
-            log_level,
             global_prompt,
             feeds,
         })

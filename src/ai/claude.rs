@@ -234,8 +234,4 @@ impl AIProvider for ClaudeProvider {
 
         Ok(articles)
     }
-
-    fn name(&self) -> &str {
-        "Anthropic"
-    }
 }

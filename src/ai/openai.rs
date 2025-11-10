@@ -240,8 +240,4 @@ impl AIProvider for OpenAIProvider {
 
         Ok(articles)
     }
-
-    fn name(&self) -> &str {
-        "OpenAI"
-    }
 }
