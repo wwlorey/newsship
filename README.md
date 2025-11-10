@@ -57,6 +57,18 @@ echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
 
 ### 2. Create Feed Configuration
 
+**Option A: Use the sample configuration (recommended)**
+
+```bash
+# Copy and customize the sample configuration
+cp feeds.conf.sample ~/.newsship/feeds.conf
+nano ~/.newsship/feeds.conf
+```
+
+The `feeds.conf.sample` file includes 10+ example feeds with detailed comments explaining all configuration options, prompt writing tips, and cost optimization strategies.
+
+**Option B: Create a minimal configuration**
+
 Create `~/.newsship/feeds.conf`:
 
 ```conf

@@ -1,0 +1,231 @@
+# ============================================================================
+# Newsship Sample Configuration File
+# ============================================================================
+# This is a sample configuration file for newsship. Copy this file to
+# ~/.newsship/feeds.conf and customize it for your needs.
+#
+# Quick Setup:
+#   1. Copy this file:  cp feeds.conf.sample ~/.newsship/feeds.conf
+#   2. Set your API key: export OPENAI_API_KEY="sk-..."
+#   3. Edit feeds below to match your interests
+#   4. Add to newsboat: echo "exec:~/.newsship/newsship tech-news" >> ~/.newsboat/urls
+#   5. Run newsboat and press 'r' to reload
+# ============================================================================
+
+
+# ============================================================================
+# GLOBAL SETTINGS (Optional)
+# ============================================================================
+# These settings apply to all feeds unless overridden at the feed level.
+
+# Default AI provider to use (openai or claude)
+# If not specified, newsship will use whichever API key is available
+default-provider openai
+
+# Cache directory for storing generated feeds
+# Default: ~/.newsship/cache
+# Tip: Keep cache enabled to minimize API costs
+cache-dir ~/.newsship/cache
+
+# Logging level: error, warn, info, or debug
+# Default: info
+# Tip: Use 'debug' when troubleshooting, 'error' for production
+log-level info
+
+# Optional: Add a prefix to all feed prompts
+# This can help set context or tone for AI-generated content
+# global-prompt "You are an expert news curator focused on accuracy and relevance."
+
+
+# ============================================================================
+# FEED DEFINITIONS
+# ============================================================================
+# Each feed starts with "feed <name>" followed by indented properties.
+# The only required property is "prompt" - everything else has sensible defaults.
+
+# ----------------------------------------------------------------------------
+# Example 1: Basic Tech News Feed
+# ----------------------------------------------------------------------------
+# A simple feed with just a prompt - uses all defaults
+feed tech-news
+  prompt "Find 10 recent articles about AI, machine learning, and emerging technology trends"
+
+# This feed will use:
+# - Default provider (openai or claude based on API key)
+# - Default model (gpt-4o for OpenAI, claude-sonnet-4-5 for Claude)
+# - Default refresh: 3600 seconds (1 hour)
+# - Default max-articles: 10
+# - Default temperature: 0.3
+
+
+# ----------------------------------------------------------------------------
+# Example 2: Security News with Custom Settings
+# ----------------------------------------------------------------------------
+# A feed that overrides multiple defaults for more frequent updates
+feed security-alerts
+  prompt "Latest cybersecurity news, CVEs, data breaches, and security vulnerabilities from the past 12 hours"
+  model gpt-4o-mini
+  refresh 1800
+  max-articles 20
+  temperature 0.2
+
+# Custom settings explained:
+# - model: gpt-4o-mini is faster and cheaper than gpt-4o
+# - refresh: 1800 seconds = 30 minutes (more frequent updates)
+# - max-articles: 20 instead of default 10
+# - temperature: 0.2 for more focused, less creative responses
+
+
+# ----------------------------------------------------------------------------
+# Example 3: Research Papers Feed
+# ----------------------------------------------------------------------------
+# Lower volume feed for academic content
+feed ml-papers
+  prompt "Recent machine learning and AI research papers from arXiv, focusing on transformer architectures, LLMs, and neural network improvements"
+  refresh 7200
+  max-articles 5
+  temperature 0.1
+
+# Settings optimized for research:
+# - refresh: 7200 seconds = 2 hours (papers don't publish as frequently)
+# - max-articles: 5 (quality over quantity)
+# - temperature: 0.1 (very focused and accurate)
+
+
+# ----------------------------------------------------------------------------
+# Example 4: Local News Feed
+# ----------------------------------------------------------------------------
+# Customize the prompt for your location
+feed local-news
+  prompt "Local news and events from San Francisco Bay Area in the last 24 hours, including city council decisions, community events, and local business news"
+  refresh 3600
+  temperature 0.3
+
+# Tip: Replace "San Francisco Bay Area" with your city/region
+
+
+# ----------------------------------------------------------------------------
+# Example 5: Niche Interest Feed
+# ----------------------------------------------------------------------------
+# Highly specific topic with precise requirements
+feed rust-programming
+  prompt "Articles, blog posts, and discussions about Rust programming language, including new crate releases, RFC updates, and best practices"
+  refresh 7200
+  max-articles 8
+
+# This demonstrates how specific prompts can create very targeted feeds
+
+
+# ----------------------------------------------------------------------------
+# Example 6: Using Claude Provider
+# ----------------------------------------------------------------------------
+# Explicitly use Claude instead of OpenAI (requires ANTHROPIC_API_KEY)
+feed deep-analysis
+  prompt "In-depth analysis and long-form journalism about climate change, policy developments, and scientific breakthroughs"
+  provider claude
+  model claude-sonnet-4-5-20250929
+  refresh 14400
+  max-articles 5
+  temperature 0.4
+
+# Claude settings:
+# - provider: claude (explicitly use Anthropic's Claude)
+# - model: Specific Claude model version
+# - refresh: 14400 seconds = 4 hours (less frequent for long-form content)
+# - temperature: 0.4 (slightly higher for more nuanced analysis)
+
+
+# ----------------------------------------------------------------------------
+# Example 7: Breaking News Feed
+# ----------------------------------------------------------------------------
+# Very frequent updates with high article count
+feed breaking-news
+  prompt "Breaking news and developing stories from the last 2 hours across all major topics: politics, business, technology, world events"
+  model gpt-4o-mini
+  refresh 900
+  max-articles 15
+  temperature 0.2
+
+# High-frequency settings:
+# - refresh: 900 seconds = 15 minutes (very frequent)
+# - Uses gpt-4o-mini to keep costs manageable with frequent updates
+# Warning: Frequent refreshes increase API costs!
+
+
+# ----------------------------------------------------------------------------
+# Example 8: Industry-Specific News
+# ----------------------------------------------------------------------------
+# Tailored for professional use in a specific industry
+feed fintech-news
+  prompt "Financial technology news including cryptocurrency, blockchain, digital banking, payment processing innovations, and regulatory developments"
+  refresh 3600
+  max-articles 12
+  temperature 0.25
+
+
+# ----------------------------------------------------------------------------
+# Example 9: Developer Tools & Libraries
+# ----------------------------------------------------------------------------
+feed dev-tools
+  prompt "New developer tools, library releases, framework updates, and DevOps news relevant to full-stack web development"
+  refresh 10800
+  max-articles 10
+
+
+# ----------------------------------------------------------------------------
+# Example 10: Multiple Language Content
+# ----------------------------------------------------------------------------
+# Request content in a specific language (if AI supports it)
+feed tech-news-es
+  prompt "Encuentra 10 artículos recientes sobre tecnología, inteligencia artificial, y startups en español"
+  refresh 7200
+  max-articles 10
+
+# The AI will attempt to find content in the requested language
+
+
+# ============================================================================
+# CONFIGURATION TIPS
+# ============================================================================
+#
+# 1. START SIMPLE
+#    Begin with just a prompt - use defaults first, then customize
+#
+# 2. PROMPT WRITING TIPS
+#    - Be specific about topics, time range, and type of content
+#    - Include desired article count in the prompt for clarity
+#    - Specify quality indicators ("major news", "important", "credible sources")
+#    - Example: "Find 10 important articles from the last 24 hours about..."
+#
+# 3. REFRESH INTERVALS
+#    - News/updates: 1800-3600 seconds (30 min - 1 hour)
+#    - Research/analysis: 7200-14400 seconds (2-4 hours)
+#    - Weekly digests: 86400+ seconds (24+ hours)
+#    - Consider your newsboat refresh frequency
+#
+# 4. COST OPTIMIZATION
+#    - Use gpt-4o-mini for frequent updates (10x cheaper than gpt-4o)
+#    - Increase refresh intervals to reduce API calls
+#    - Reduce max-articles if you don't need many
+#    - Cache is your friend - default 1 hour helps a lot
+#
+# 5. MODEL SELECTION
+#    - gpt-4o: Best quality, slower, more expensive
+#    - gpt-4o-mini: Fast, cheap, good quality for news
+#    - claude-sonnet-4-5: Excellent analysis, good for complex queries
+#
+# 6. TEMPERATURE GUIDE
+#    - 0.0-0.2: Very focused and deterministic (good for facts/news)
+#    - 0.3-0.5: Balanced (default is 0.3)
+#    - 0.6-1.0: More creative/varied (rarely needed for news)
+#
+# 7. TESTING YOUR FEEDS
+#    Test a feed directly from command line:
+#      newsship tech-news --debug
+#    Force refresh to ignore cache:
+#      newsship tech-news --force-refresh
+#
+# ============================================================================
+
+# Add your own custom feeds below:
+
