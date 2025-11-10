@@ -24,9 +24,9 @@ Natty Lang Feeder works seamlessly with [newsboat](https://newsboat.org/), a pop
 # Traditional RSS feeds
 https://news.ycombinator.com/rss
 
-# AI-generated feeds
-exec:~/.natty-lang-feeder/natty-lang-feeder tech-news
-exec:~/.natty-lang-feeder/natty-lang-feeder security-news
+# AI-generated feeds (use the wrapper script for newsboat compatibility)
+exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news
+exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh security-news
 ```
 
 That's it. When newsboat loads, it runs natty-lang-feeder, which generates your custom RSS feed on demand. Articles are cached daily to minimize API costs.
@@ -56,20 +56,43 @@ That's it. When newsboat loads, it runs natty-lang-feeder, which generates your 
 
 ### Build from Source
 
+**Automated Installation (Recommended):**
+
 ```bash
 # Clone the repository
 git clone https://github.com/wwlorey/natty-lang-feeder
 cd natty-lang-feeder
 
+# Run the installation script
+chmod +x install.sh
+./install.sh
+```
+
+The installation script will:
+- Build the release binary
+- Install to `~/.natty-lang-feeder/`
+- Set up the newsboat wrapper script (required for newsboat compatibility)
+- Create example configuration
+
+**Manual Installation:**
+
+```bash
 # Build the release binary
 cargo build --release
 
-# Copy binary to your PATH
-cp target/release/natty-lang-feeder ~/.natty-lang-feeder/natty-lang-feeder
+# Create installation directory
+mkdir -p ~/.natty-lang-feeder
 
-# Or install globally
-cargo install --path .
+# Copy binary and wrapper script
+cp target/release/natty-lang-feeder ~/.natty-lang-feeder/
+cp natty-lang-feeder-wrapper.sh ~/.natty-lang-feeder/
+chmod +x ~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh
+
+# Copy example configuration
+cp examples/feeds.conf ~/.natty-lang-feeder/
 ```
+
+**Note:** Newsboat's `exec:` mechanism requires a shell script with a shebang. Always use `natty-lang-feeder-wrapper.sh` in your newsboat URLs, not the binary directly.
 
 ## Quick Start
 
@@ -126,10 +149,12 @@ Edit `~/.newsboat/urls` (see `examples/newsboat-urls` for a complete example):
 # Traditional RSS feeds
 https://news.ycombinator.com/rss
 
-# AI-generated feeds
-exec:~/.natty-lang-feeder/natty-lang-feeder tech-news
-exec:~/.natty-lang-feeder/natty-lang-feeder security-news
+# AI-generated feeds (use wrapper script for newsboat compatibility)
+exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news
+exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh security-news
 ```
+
+**Important:** Always use `natty-lang-feeder-wrapper.sh` (not the binary directly). Newsboat's `exec:` requires shell scripts with shebangs.
 
 And configure `~/.newsboat/config` to prevent auto-reloads (see `examples/newsboat-config`):
 
@@ -231,12 +256,15 @@ feed sf-bay-news
 
 ## How It Works
 
-1. **newsboat** detects `exec:` URLs and runs the natty-lang-feeder binary
-2. **natty-lang-feeder** reads your feed configuration and checks the cache
-3. If cache is expired, it calls the AI API with your prompt
-4. AI returns articles with titles, summaries, and source URLs
-5. **natty-lang-feeder** generates valid RSS 2.0 XML and outputs to stdout
-6. **newsboat** parses the RSS and displays articles normally
+1. **newsboat** detects `exec:` URLs and runs the wrapper script
+2. The **wrapper script** executes the natty-lang-feeder binary with your feed name
+3. **natty-lang-feeder** reads your feed configuration and checks the cache
+4. If cache is expired, it calls the AI API with your prompt
+5. AI returns articles with titles, summaries, and source URLs
+6. **natty-lang-feeder** generates valid RSS 2.0 XML and outputs to stdout
+7. **newsboat** parses the RSS and displays articles normally
+
+**Why a wrapper script?** Newsboat's `exec:` mechanism requires shell scripts with a proper shebang (`#!/bin/sh`). The wrapper script is a simple shell script that forwards all arguments to the natty-lang-feeder binary.
 
 ## Caching
 
@@ -342,6 +370,28 @@ natty-lang-feeder tech-news --force-refresh
 
 ## Troubleshooting
 
+### Feed not showing up in newsboat
+
+**Symptom:** AI feed doesn't appear or shows an error after pressing 'r' in newsboat.
+
+**Solution:** Make sure you're using the wrapper script in your `~/.newsboat/urls` file:
+
+```
+# ✅ Correct - uses wrapper script
+exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news
+
+# ❌ Wrong - binary doesn't have shebang
+exec:~/.natty-lang-feeder/natty-lang-feeder tech-news
+```
+
+**Why?** Newsboat's `exec:` requires shell scripts with a shebang (`#!/bin/sh`). Compiled binaries don't have shebangs, so newsboat can't execute them directly.
+
+**Test your feed manually:**
+```bash
+~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news
+# Should output valid RSS XML
+```
+
 ### Feed shows "Error: OPENAI_API_KEY not set"
 
 ```bash
@@ -352,7 +402,7 @@ export OPENAI_API_KEY="sk-..."
 ### Feed not updating
 
 1. Check cache TTL: `ls -lh ~/.natty-lang-feeder/cache/`
-2. Force refresh: `natty-lang-feeder <feed> --force-refresh`
+2. Force refresh: `~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news --force-refresh`
 3. Check logs: `~/.natty-lang-feeder/error.log`
 
 ### Poor quality summaries

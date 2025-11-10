@@ -12,12 +12,13 @@ https://www.reddit.com/r/programming/.rss "tech" "~Reddit Programming"
 # ============================================
 # AI-Generated Feeds (via Natty Lang Feeder)
 # ============================================
-# Note: Update the path to your natty-lang-feeder binary
+# IMPORTANT: Use the wrapper script (natty-lang-feeder-wrapper.sh), not the binary directly.
+# Newsboat's exec: requires shell scripts with shebangs, which the wrapper provides.
 # These will be cached based on your refresh settings in ~/.natty-lang-feeder/feeds.conf
 
-exec:~/.natty-lang-feeder/natty-lang-feeder tech-news "tech" "~AI: Tech News"
-exec:~/.natty-lang-feeder/natty-lang-feeder security-news "security" "~AI: Security"
-exec:~/.natty-lang-feeder/natty-lang-feeder ai-research "ai" "~AI: Research"
+exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh tech-news "tech" "~AI: Tech News"
+exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh security-news "security" "~AI: Security"
+exec:~/.natty-lang-feeder/natty-lang-feeder-wrapper.sh ai-research "ai" "~AI: Research"
 
 # ============================================
 # How Day-Based Caching Works
