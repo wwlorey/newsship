@@ -18,7 +18,7 @@ struct Args {
     command: Option<Commands>,
 
     /// Feed name to generate (when no subcommand specified)
-    #[arg(value_name = "FEED_NAME", global = true)]
+    #[arg(value_name = "FEED_NAME")]
     feed_name: Option<String>,
 
     /// Config file path
@@ -74,13 +74,6 @@ enum Commands {
     /// List all configured feeds
     ListFeeds,
 
-    /// Generate shell script for newsboat
-    GenerateScript {
-        /// Output path (default: stdout)
-        #[arg(short, long)]
-        output: Option<PathBuf>,
-    },
-
     /// Generate RSS feed (explicit command)
     Generate {
         /// Feed name to generate
@@ -130,9 +123,6 @@ async fn run() -> Result<()> {
         }
         Some(Commands::ListFeeds) => {
             cmd_list_feeds(args.config).await
-        }
-        Some(Commands::GenerateScript { output }) => {
-            cmd_generate_script(output).await
         }
         Some(Commands::Generate { feed_name, force_refresh }) => {
             cmd_generate(&feed_name, args.config, force_refresh).await
@@ -459,36 +449,6 @@ async fn cmd_list_feeds(config_path: Option<PathBuf>) -> Result<()> {
                 println!("  • {} (error loading config)", feed_name);
             }
         }
-    }
-
-    Ok(())
-}
-
-/// Generate shell script for newsboat
-async fn cmd_generate_script(output: Option<PathBuf>) -> Result<()> {
-    let install_dir = dirs::home_dir()
-        .expect("Could not determine home directory")
-        .join(".natty-lang-feeder");
-    let binary_path = install_dir.join("natty-lang-feeder");
-
-    let script_content = generate_script_content(&binary_path);
-
-    if let Some(output_path) = output {
-        fs::write(&output_path, &script_content)
-            .context("Failed to write shell script")?;
-
-        // Make executable
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perms = fs::metadata(&output_path)?.permissions();
-            perms.set_mode(0o755);
-            fs::set_permissions(&output_path, perms)?;
-        }
-
-        println!("✓ Shell script written to {}", output_path.display());
-    } else {
-        print!("{}", script_content);
     }
 
     Ok(())
