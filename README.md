@@ -42,6 +42,8 @@ cargo install --path .
 
 ## Quick Start
 
+**Note:** See the `examples/` directory for complete configuration files.
+
 ### 1. Set API Key
 
 ```bash
@@ -57,26 +59,27 @@ echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
 
 ### 2. Create Feed Configuration
 
-Create `~/.newsship/feeds.conf`:
+Create `~/.newsship/feeds.conf` (see `examples/feeds.conf` for a complete example):
 
 ```conf
 # Global settings (optional)
 default-provider openai
 log-level info
 
-# Feed definitions
+# Feed definitions with 24-hour cache to minimize costs
 feed tech-news
   prompt "Find 10 recent articles about AI breakthroughs and emerging technology"
+  refresh 86400    # 24 hours - only regenerate once per day
 
 feed security-news
   prompt "Latest CVEs and security vulnerabilities"
   model gpt-4o-mini
-  refresh 1800
+  refresh 86400
 ```
 
 ### 3. Add to Newsboat
 
-Edit `~/.newsboat/urls` and add:
+Edit `~/.newsboat/urls` (see `examples/newsboat-urls` for a complete example):
 
 ```
 # Traditional RSS feeds
@@ -85,6 +88,13 @@ https://news.ycombinator.com/rss
 # AI-generated feeds
 exec:~/.newsship/newsship tech-news
 exec:~/.newsship/newsship security-news
+```
+
+And configure `~/.newsboat/config` to prevent auto-reloads (see `examples/newsboat-config`):
+
+```conf
+# Only reload when you press 'r', not automatically
+auto-reload no
 ```
 
 ### 4. Use Newsboat Normally
@@ -216,6 +226,91 @@ Typical costs for 3-5 AI feeds with 2-4 reloads per day:
 - Increase refresh intervals (3600+ seconds)
 - Use gpt-4o-mini for frequent updates
 - Reduce max-articles count
+
+## Controlling When AI Articles Are Generated
+
+To avoid multiple AI API calls per day (and unnecessary costs), you need to configure **both** newsship and newsboat properly.
+
+### Understanding the Cache System
+
+Newsship only calls the AI API when:
+1. No cache exists for a feed
+2. The cache has expired (based on the `refresh` TTL)
+3. You use `--force-refresh` flag
+
+**The cache TTL controls how often the AI can be called.** If you set `refresh 86400` (24 hours), newsship will only call the AI once per day maximum, regardless of how many times newsboat reloads.
+
+### Recommended Configuration for Minimal API Calls
+
+**1. Set Long Cache TTLs in newsship** (`~/.newsship/feeds.conf`):
+
+```conf
+# AI feeds - generate once per day
+feed tech-news
+  prompt "Find 10 recent articles about AI breakthroughs"
+  refresh 86400     # 24 hours - only regenerate once per day
+
+feed security-news
+  prompt "Latest security vulnerabilities"
+  refresh 86400     # 24 hours
+
+# Or even longer for less time-sensitive content
+feed weekly-digest
+  prompt "Important tech stories from the past week"
+  refresh 604800    # 7 days
+```
+
+**2. Configure newsboat to Only Reload on Startup** (`~/.newsboat/config`):
+
+```conf
+# Only reload feeds when newsboat starts, not automatically
+auto-reload no
+
+# Optional: reload feeds in the background on startup
+reload-only-visible-feeds no
+reload-threads 4
+```
+
+### Usage Pattern
+
+With this configuration:
+1. **Open newsboat** → Feeds reload (but use cache if not expired)
+2. **AI feeds cached?** → Return instantly, no API call
+3. **AI feeds expired?** → Call AI API, cache for 24 hours
+4. **Work in newsboat** → No automatic reloads, no API calls
+5. **Close newsboat** → No API calls
+6. **Reopen later same day** → Uses cache, no API calls
+7. **Next day** → Cache expired, fresh AI generation
+
+### Cost Example
+
+With this setup for 5 AI feeds:
+- **Worst case:** 5 API calls/day (if you open newsboat once per day)
+- **Typical case:** 2-3 API calls/day (some feeds still cached)
+- **Monthly cost:** ~$2-5 with gpt-4o-mini, ~$5-10 with gpt-4o
+
+### Manual Refresh When Needed
+
+If you want fresh articles before the cache expires:
+
+```bash
+# Force refresh a specific feed
+newsship tech-news --force-refresh
+
+# Or press 'r' in newsboat and wait for all feeds to reload
+# (will respect cache TTL unless you force-refresh manually)
+```
+
+### Alternative: Reload Only on Explicit Request
+
+If you want even more control, keep newsboat open and only reload manually:
+
+```conf
+# In ~/.newsboat/config
+auto-reload no
+```
+
+Then only press `r` in newsboat when you actively want to check for new articles.
 
 ## Troubleshooting
 
