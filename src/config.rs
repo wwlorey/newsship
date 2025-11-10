@@ -198,6 +198,12 @@ impl Config {
             .ok_or_else(|| NattyLangFeederError::FeedNotFound(name.to_string()))
     }
 
+    pub fn list_feeds(&self) -> Vec<String> {
+        let mut feed_names: Vec<String> = self.feeds.keys().cloned().collect();
+        feed_names.sort();
+        feed_names
+    }
+
     fn detect_default_provider() -> Provider {
         // Check environment variables to determine default provider
         if std::env::var("OPENAI_API_KEY").is_ok() {

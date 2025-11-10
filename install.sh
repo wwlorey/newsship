@@ -1,6 +1,12 @@
 #!/bin/bash
-# Installation script for natty-lang-feeder
-# This script builds the binary and installs it with the newsboat wrapper
+# DEPRECATED: This script is kept for backward compatibility
+#
+# NEW RECOMMENDED METHOD:
+#   cargo build --release
+#   ./target/release/natty-lang-feeder install
+#
+# The binary now manages its own installation with the 'install' subcommand.
+# This provides better user experience and more features (add-feed, list-feeds, etc.)
 
 set -e
 
@@ -8,7 +14,18 @@ set -e
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+
+echo -e "${YELLOW}⚠️  DEPRECATION WARNING${NC}"
+echo -e "${YELLOW}This install.sh script is deprecated. Please use the new method:${NC}"
+echo -e "${YELLOW}  cargo build --release${NC}"
+echo -e "${YELLOW}  ./target/release/natty-lang-feeder install${NC}"
+echo
+echo -e "${YELLOW}The binary now manages its own installation with built-in commands.${NC}"
+echo -e "${YELLOW}Continuing with legacy installation in 3 seconds...${NC}"
+echo
+sleep 3
 
 echo -e "${BLUE}=== natty-lang-feeder Installation ===${NC}"
 echo
