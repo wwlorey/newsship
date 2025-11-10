@@ -9,7 +9,7 @@ Newsship is a standalone tool that integrates with [newsboat](https://newsboat.o
 ## Features
 
 - ✅ Works with standard newsboat (no fork required)
-- ✅ OpenAI and Claude API support
+- ✅ OpenAI and Anthropic API support
 - ✅ Natural language feed prompts
 - ✅ Smart caching to minimize API costs
 - ✅ Zero-config defaults (just set API key)
@@ -48,7 +48,7 @@ cargo install --path .
 # For OpenAI (primary)
 export OPENAI_API_KEY="sk-..."
 
-# Or for Claude (fallback)
+# Or for Anthropic (fallback)
 export ANTHROPIC_API_KEY="sk-ant-..."
 
 # Add to your shell config (~/.bashrc, ~/.zshrc, etc.) for persistence
@@ -113,7 +113,7 @@ Press `r` to reload feeds. AI feeds will be generated alongside traditional RSS 
 
 ```conf
 # Global settings
-default-provider openai          # openai | claude
+default-provider openai          # openai | anthropic
 cache-dir ~/.newsship/cache
 log-level info                   # error | warn | info | debug
 
@@ -134,7 +134,7 @@ feed <name>
 
 **Required (at least one):**
 - `OPENAI_API_KEY` - OpenAI API key (primary)
-- `ANTHROPIC_API_KEY` - Claude API key (fallback)
+- `ANTHROPIC_API_KEY` - Anthropic API key (fallback)
 
 **Optional:**
 - `NEWSSHIP_CONFIG` - Custom config file path (default: `~/.newsship/feeds.conf`)
@@ -221,7 +221,7 @@ Typical costs for 3-5 AI feeds with 2-4 reloads per day:
 **OpenAI GPT-4o-mini:**
 - ~$1-3/month (cheaper, faster)
 
-**Claude Sonnet:**
+**Anthropic Sonnet:**
 - ~$15-25/month (includes web search)
 
 **Tips to reduce costs:**
@@ -248,7 +248,7 @@ export OPENAI_API_KEY="sk-..."
 
 1. Make prompt more specific
 2. Lower temperature (0.1-0.2)
-3. Try different model (gpt-4o vs gpt-4o-mini)
+3. Try different model (gpt-4o vs gpt-4o-mini vs anthropic)
 
 ### Rate limited
 
@@ -268,7 +268,7 @@ newsship/
 │   ├── ai/
 │   │   ├── mod.rs    # AI provider trait
 │   │   ├── openai.rs # OpenAI implementation
-│   │   └── claude.rs # Claude implementation
+│   │   └── claude.rs # Anthropic implementation
 │   ├── rss.rs        # RSS generation
 │   ├── cache.rs      # Caching system
 │   └── error.rs      # Error types
@@ -306,8 +306,8 @@ MIT License - See LICENSE file for details
 ## Acknowledgments
 
 - [newsboat](https://newsboat.org/) - Excellent RSS reader
-- [OpenAI](https://openai.com/) - GPT models
-- [Anthropic](https://anthropic.com/) - Claude models
+- [OpenAI](https://openai.com/) - AI models
+- [Anthropic](https://anthropic.com/) - AI models
 
 ## Support
 
