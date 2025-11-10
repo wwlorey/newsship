@@ -13,6 +13,8 @@ use std::path::PathBuf;
 /// AI-generated RSS feeds for newsboat
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
+#[command(args_conflicts_with_subcommands = true)]
+#[command(subcommand_precedence_over_arg = true)]
 struct Args {
     #[command(subcommand)]
     command: Option<Commands>,
