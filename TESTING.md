@@ -118,7 +118,7 @@ feed rust-news
    - `AIProvider::name()` method (used for logging)
    - `Config::log_level` field (used for runtime logging)
    - `FeedConfig::name` field (used for cache key)
-   - `NewsshipError::XmlError` variant (reserved for future use)
+   - `NattyLangFeederError::XmlError` variant (reserved for future use)
 
 3. **No newsboat integration** - Application is ready but hasn't been tested end-to-end with actual newsboat yet.
 
